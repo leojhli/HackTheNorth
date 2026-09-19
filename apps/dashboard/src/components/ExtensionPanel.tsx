@@ -147,8 +147,8 @@ function Welcome({ s, a }: { s: ExtensionState; a: ExtActions }) {
       </div>
 
       <div className="space-y-3 rounded-[var(--radius-panel)] border border-subtle bg-canvas p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[13px] font-medium">Account</span>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <span className="shrink-0 text-[13px] font-medium">Account</span>
           {s.accountConnected ? (
             <span className="inline-flex items-center gap-1.5 text-[13px] text-success">
               <Check size={14} /> Account connected
@@ -157,8 +157,8 @@ function Welcome({ s, a }: { s: ExtensionState; a: ExtActions }) {
             <span className="text-[13px] text-secondary">Not connected</span>
           )}
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[13px] font-medium">Integration</span>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <span className="shrink-0 text-[13px] font-medium">Integration</span>
           <IntegrationMode kind={s.integration} />
         </div>
       </div>

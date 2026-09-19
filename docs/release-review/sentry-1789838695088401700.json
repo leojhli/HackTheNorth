@@ -1,0 +1,8 @@
+{
+  "mode": "live_send",
+  "correlation_id": "4a893c17-fd61-40c6-9528-576a74916724",
+  "method": "Real local inference on a synthetic helper. Offline mode captures real SDK envelopes in memory without contacting Sentry. No user code or history is read.",
+  "dashboard_receipt_verified": false,
+  "independent_quality_review": false,
+  "note": "SDK flushed. Delivery/visibility and a real product improvement must still be verified in your Sentry dashboard."
+}

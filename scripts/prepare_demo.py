@@ -1,4 +1,6 @@
 """Create a disposable Git fixture; never modifies the user's existing project/history."""
+import argparse
+import shutil
 import subprocess
 import sys
 import uuid
@@ -16,7 +18,17 @@ DEMO_CASE = {
 
 
 def main():
-    root = Path('.tools/demo-workspaces', 'campus-events-' + uuid.uuid4().hex[:8]).resolve()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--open', action='store_true', help='Open the fresh project in a new VS Code window.')
+    parser.add_argument('--check', action='store_true', help='Check local readiness before creating the project.')
+    args = parser.parse_args()
+    workspace = Path(__file__).resolve().parent.parent
+    if args.check:
+        result = subprocess.run([sys.executable, '-m', 'scripts.doctor'], cwd=workspace)
+        if result.returncode:
+            print('No demo created. Resolve the readiness checks, then try again.')
+            return result.returncode
+    root = workspace / '.tools/demo-workspaces' / ('campus-events-' + uuid.uuid4().hex[:8])
     root.mkdir(parents=True)
     for template in TEMPLATE.rglob('*'):
         if template.is_file() and '__pycache__' not in template.parts:
@@ -39,7 +51,17 @@ def main():
     print(root)
     print('Read START_HERE.md. Run ./start-demo.ps1 there to preview the event page.')
     print('This is synthetic source for a real local-model demo. No passing history was seeded.')
+    if args.open:
+        code = shutil.which('code')
+        if code:
+            try:
+                subprocess.run([code, '--new-window', str(root)], check=True, capture_output=True)
+            except (OSError, subprocess.CalledProcessError):
+                print('Could not launch VS Code. Use File > Open Folder with the path above.')
+        else:
+            print('VS Code command not found. Use File > Open Folder with the path above.')
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

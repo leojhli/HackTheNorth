@@ -13,10 +13,10 @@ In the BeProgram workspace terminal:
 In another terminal:
 
 ```powershell
-.venv/Scripts/python.exe -m scripts.prepare_demo
+.venv/Scripts/python.exe -m scripts.prepare_demo --check --open
 ```
 
-Open the printed folder in VS Code. Open BeProgram, connect, and choose scope `src`. Your saved token should be reused. If a password prompt appears, use the private local token as described in the README; never include it in screenshots or feedback. Keep `.env` closed while sharing your screen.
+The command checks readiness and opens a fresh demo in VS Code. If automatic opening is unavailable, open the printed folder manually. Each run creates a separate project and preserves existing history. Open BeProgram, connect, and choose scope `src`. Your saved token should be reused. If a password prompt appears, use the private local token as described in the README; never include it in screenshots or feedback. Keep `.env` closed while sharing your screen.
 
 ## Try the learning flow
 

@@ -10,6 +10,8 @@ Functionality source: `C:/Users/Mathe/Downloads/PRD.md.md` (version 3.0, inspect
 
 User decisions superseding the original PRD: no paid APIs/subscriptions/credits; local inference and local SQLite/token auth; Solana disabled and deferred; beginner-friendly demonstration. Hosted OpenAI/Sentry/ElevenLabs/Composio track claims are withdrawn. Optional feature behavior may use a genuinely local/free replacement, but sponsor eligibility is not implied. No public deployment or GitHub publication is authorized by development/testing alone.
 
+Latest user-authorized track work supersedes the earlier Sentry cut: optional Logs + Tracing is configured and enabled in this workspace; two real uploads received HTTP 200. Account plan and dashboard visibility remain unverified. A bounded approved-context tool supports a Rox candidate demonstration. Warp/Overall/Beginner need no extra integration; Sentry dashboard evidence and a demonstrated improvement, broader Rox evidence and independent model-quality acceptance remain open. See `docs/TRACKS.md`.
+
 ## Eight-hour finish budget
 
 These are effort/time limits, not a claim that model quality or optional integrations are guaranteed. Protect the last two hours for release verification and human rehearsal. If P0 is still unstable with six hours left, pause optional integrations as the PRD specifies.
@@ -31,7 +33,7 @@ These are effort/time limits, not a claim that model quality or optional integra
 | CORE-04 evaluation/follow-up | Real text evaluation and adaptive follow-ups; latest saved-answer quote bug fixed | Human review, false-pass/false-rejection assessment; general SQL smoke previously failed |
 | CORE-05 durable gate | Version/idempotency/transaction/lease checks, restart/retry, only persisted pass unlocks managed request | Fresh end-to-end release verification |
 | CORE-06 history/evidence | Dashboard and sidebar actual records; project deletion; no seeded success | Release UI checks and user pilot |
-| OBS-01 operations | Hosted Sentry disabled; historical redaction tests exist | Useful local lifecycle/error/duration evidence; no Sentry track claim |
+| OBS-01 operations | Redacted local logs plus opt-in Sentry Logs/Tracing; live ingestion accepted | Dashboard confirmation and a real improvement from observed data; eligibility not established |
 | SOL-01/02 | Implementation retained, disabled routes block RPC; hidden in core navigation | Explicitly deferred by user, no active receipt acceptance |
 | VOICE-01/02 | Hosted adapters disabled; text works | Optional local playback feasibility; STT unimplemented in free edition |
 | GH-01/02 | Hosted Composio adapter disabled; local Git works | Direct free GitHub replacement unimplemented, no connection or approved PR; not required for core release |
@@ -58,7 +60,7 @@ Run `./scripts/run-local.ps1`; install `artifacts/beprogram-companion.vsix`. Sup
 
 ## Testing and acceptance
 
-Current release: 0.4.3, with 82 backend tests, 11 extension unit tests, four browser scenarios and six exact-package host groups passing. Test doubles prove API/state/UI behavior, not model judgment. The new managed-context smoke still exposes a wrong zero-capacity suggestion despite correct source context. Previously recorded practice-model reports are absent from this checkout; their claims remain historical, not fresh reproducible evidence. See `docs/PRD_REVIEW.md` for the current evidence audit. Independent quality acceptance remains open.
+Current release: 0.4.4. Latest checks: 101 backend tests, 11 extension unit tests, four browser scenarios and six exact-package host groups passing. Test doubles prove API/state/UI behavior, not model judgment. The new managed-context smoke still exposes a wrong zero-capacity suggestion despite correct source context. Previously recorded practice-model reports are absent from this checkout; their claims remain historical, not fresh reproducible evidence. See `docs/PRD_REVIEW.md` for the current evidence audit. Independent quality acceptance remains open.
 
 Latest backend hardening on the same extension release: 89 backend tests, four browser scenarios and six exact-package host groups pass; backend restarted and doctor passed. Source-expiry races in question generation/retry and ordinary/assisted grading are fixed. A new 24-case practice benchmark matched 22 labels, with two ungrounded passes blocked as operational failures. A prompt experiment introduced two false passes and was rejected; original assessor restored byte-for-byte. Three real-model flows pass their state assertions but still contain semantic errors. See the latest verification section; do not interpret flow success as grading acceptance.
 
@@ -101,3 +103,7 @@ Mandatory release checks: no paid calls; owner isolation; wrong token rejection;
 - 0.4.3 PRD review: fixed missing code context in Managed Ask AI. Requests now include approved saved AFTER excerpts, current-scope filtering, frozen retry references, source metadata and context-expiry handling. Replies identify their code context and unverified status. No extra files, learner answers or private rubrics are included. Restored missing practice regression coverage; recorded missing earlier report artifacts rather than recreating old evidence. Actual-model smoke still produces an incorrect zero-capacity result; independent model-quality acceptance remains incomplete. Full requirement review: `docs/PRD_REVIEW.md`.
 
 - Final-product hardening: completed the source-expiry checks across question generation and assessment, added a frozen executable-reference practice benchmark, retained and rejected a regressing prompt experiment, verified current API/browser/packaged-host and three model flows, and supplied `docs/BEGINNER_TEST.md`. Next acceptance work remains generated-question/feedback correctness and independent review; optional integrations stay deferred.
+
+- 0.4.4 usability fix: connection-card account/integration rows now wrap instead of squeezing the managed-AI badge in narrow sidebars. Checked built layout at 280–520px; builds, 11 extension tests, four browser scenarios and six exact-package host groups pass. Installed updated VSIX; model/backend behavior unchanged.
+
+- Track preparation: optional Sentry Logs + Tracing implemented with strict redaction and explicit opt-in; actual SDK envelopes verified offline, hosted setup still pending user account. Managed Ask AI now has a bounded approved-module/dependency tool for multi-file/partial snapshots; two real-model synthetic examples pass after rejecting a looping retrieval design. 101 backend tests, four browser scenarios and six unchanged-package host groups pass; backend restarted. See `docs/TRACKS.md` for setup and remaining Sentry/Rox evidence. No grading-quality acceptance, paid API, unrelated integration or publication added.

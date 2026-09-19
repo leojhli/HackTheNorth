@@ -20,7 +20,7 @@ def test_managed_prompt_contains_only_explicit_context_and_marks_it_untrusted():
     model = LocalAssessor(config())
     calls = []
     model.generate = lambda messages: calls.append(messages) or 'Suggestion'
-    context = {'files':[{'path':'src/a.js','lines':[{'number':1,'text':'return false;'}]}], 'partial':True}
+    context = {'files':[{'path':'src/a.js','lines':[{'number':1,'text':'return false;'}]}], 'partial':False}
     assert model.ask('Suggest a test', context) == 'Suggestion'
     payload = json.loads(calls[0][1]['content'])
     assert payload == {'coding_request':'Suggest a test','approved_context':context}

@@ -41,14 +41,15 @@ def test_actual_sentry_envelopes_redact_sensitive_payloads():
     old=sentry_sdk.get_client()
     try:
         sentry_sdk.get_global_scope().set_client(client)
-        with stage('evaluation','opaque-correlation-id'):
+        correlation = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        with stage('evaluation',correlation):
             sentry_sdk.capture_event({'level':'error','message':'PRIVATE_CODE_SECRET','request':{'data':'PRIVATE_ANSWER_SECRET'},'extra':{'token':'PRIVATE_TOKEN_SECRET'}})
         client.flush(timeout=2)
         serialized=b'\n'.join(e.serialize() for e in transport.envelopes).decode()
         assert 'PRIVATE_CODE_SECRET' not in serialized and 'PRIVATE_ANSWER_SECRET' not in serialized and 'PRIVATE_TOKEN_SECRET' not in serialized
-        assert 'opaque-correlation-id' in serialized
+        assert correlation in serialized
         # Correlation survives independently in error, trace and lifecycle log payloads.
-        assert serialized.count('opaque-correlation-id') >= 3
+        assert serialized.count(correlation) >= 3
         assert 'transaction' in serialized and 'log' in serialized and 'BeProgram operational failure' in serialized
     finally:
         sentry_sdk.get_global_scope().set_client(old)

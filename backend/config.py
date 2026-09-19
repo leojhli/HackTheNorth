@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     local_logs_enabled: bool = True
     local_log_path: str = '.tools/logs/lifecycle.jsonl'
     sentry_dsn: str = ''
+    sentry_enabled: bool = False
     elevenlabs_api_key: str = ''
     elevenlabs_voice_id: str = ''
     solana_enabled: bool = False
@@ -36,6 +37,14 @@ class Settings(BaseSettings):
 
     @model_validator(mode='after')
     def production(self):
+        if self.sentry_enabled:
+            from sentry_sdk.utils import Dsn
+            try:
+                dsn = Dsn(self.sentry_dsn)
+                if dsn.scheme != 'https' or not dsn.host.endswith('.ingest.sentry.io') and not dsn.host.endswith('.ingest.us.sentry.io') and not dsn.host.endswith('.ingest.de.sentry.io'):
+                    raise ValueError()
+            except Exception:
+                raise ValueError('Enabled Sentry requires an HTTPS project DSN from Sentry; leave it disabled until configured.') from None
         endpoint = urlsplit(self.ollama_url)
         if (endpoint.scheme != 'http' or endpoint.hostname not in {'127.0.0.1', '::1'}
                 or endpoint.username or endpoint.password or endpoint.query or endpoint.fragment

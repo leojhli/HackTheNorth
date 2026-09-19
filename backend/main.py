@@ -78,6 +78,7 @@ def create_app(config=None, database=None, assessor=None):
         ai = service.assessor.status() if hasattr(service.assessor, 'status') else {'available': True, 'provider': 'test-only-fixture', 'model': 'test-only-fixture', 'message': 'Injected test fixture; not live inference.'}
         return {'auth_mode': config.auth_mode, 'supabase_url': config.supabase_url, 'supabase_publishable_key': config.supabase_publishable_key,
                 'ai': ai, 'cost_mode': 'local_only',
+                'diagnostics': {'sentry_enabled': config.sentry_enabled, 'products': ['Logs', 'Tracing'] if config.sentry_enabled else []},
                 'capabilities': {'assessment': ai['available'], 'managed_ai': ai['available'],
                     'voice': False,
                     'receipts': bool(config.solana_enabled and config.solana_issuer_key),

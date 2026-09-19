@@ -17,7 +17,7 @@ Setup installs dependencies, builds the site/sidebar, creates `.env` only if abs
 
 For this existing workspace, the configuration has already been converted to local AI. On later launches, use `./scripts/run-local.ps1`. It starts the model server, then the backend at http://127.0.0.1:8000. Keep that backend terminal open.
 
-1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.3 gives Managed Ask AI the latest approved saved code excerpts and shows which files were used. Fresh practice after Give up and explain, saved-token reuse and elapsed local inference time remain available.
+1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.4 fixes the connection-card layout in narrow sidebars. Managed Ask AI includes approved saved code excerpts and shows which files were used. Fresh practice after Give up and explain, saved-token reuse and elapsed local inference time remain available.
 2. Open a trusted local Git project and click BeProgram in the Activity Bar.
 3. Connect using `LOCAL_DEV_TOKEN` from your ignored `.env`. This randomly generated local password is **not an API key**. The extension stores it in VS Code SecretStorage.
 4. Choose project scope (for this repository, try `apps/dashboard/src`), save a meaningful edit, review the source preview and approve capture.
@@ -31,9 +31,19 @@ The model server runs separately in the background. To release its memory:
 
 Managed Ask AI uses only the latest approved AFTER-code excerpts in the current project that are still within its scope. It does not read unsaved buffers or unrelated files. Replies show their saved-source context; missing or expired context is labeled as general advice. Retried requests keep their original snapshot. Suggestions are not executed, verified or automatically applied, and can still be incorrect even with source context.
 
+## Quick demo
+
+With the backend running, create and open a fresh practice project:
+
+```powershell
+.venv/Scripts/python.exe -m scripts.prepare_demo --check --open
+```
+
+Choose scope `src`, review the saved change, and follow the [six-step beginner walkthrough](docs/BEGINNER_TEST.md). Readiness failures stop before creating a project; existing projects and history are preserved.
+
 ## Configuration and troubleshooting
 
-`.env.example` contains all settings needed for the free local flow. Keep `.env` private. Existing provider keys are unnecessary; legacy OpenAI keys are ignored and hosted voice/Composio/Sentry cannot be enabled by setting old keys.
+`.env.example` contains all settings needed for the free local flow. Keep `.env` private. Existing provider keys are unnecessary; legacy OpenAI keys are ignored and hosted voice/Composio remain disabled. A Sentry DSN alone does not enable telemetry; `SENTRY_ENABLED=true` is also required.
 
 | Setting | Purpose |
 | --- | --- |
@@ -88,11 +98,11 @@ Capture checks saved Git changes against HEAD without changing staging. It exclu
 
 - **Voice:** hosted ElevenLabs speech and transcription are disabled. Typed explanations remain the complete supported input path; there is no simulated or secretly cloud-backed voice replacement.
 - **GitHub publication:** Composio is disabled. Local Git capture still works; no PR comment is published. A direct free GitHub adapter is future work.
-- **Telemetry:** hosted Sentry delivery is disabled; there is no monitoring subscription requirement.
+- **Telemetry:** local logs need no account. Optional Sentry Logs + Tracing is implemented but off by default; free-account setup is in [TRACKS.md](docs/TRACKS.md). No source, answers or prompts are sent. Live Sentry verification remains incomplete.
 - **Solana:** deferred by product decision. Receipts and the verifier are hidden from the core demo; disabled API routes do not contact Solana. The implementation is retained for possible future use, but the Solana track is no longer targeted. No wallet or blockchain setup is needed.
 - **Hosting/auth:** local SQLite and the token remove the need for Supabase or hosted infrastructure for this demo. Historical production Supabase/PostgreSQL support remains separate, optional and unverified in this delivery.
 
-OpenAI, ElevenLabs, Composio, Sentry and Solana are no longer active track claims in this edition. Prior implementation evidence is retained as history. Overall/developer-tool eligibility and any local-model track must be checked against actual event rules; no prize eligibility is asserted.
+OpenAI, ElevenLabs, Composio and Solana are not active track claims. Overall, Warp and eligible Beginner submissions need no extra integration. Sentry/Rox preparation and remaining evidence are recorded in [TRACKS.md](docs/TRACKS.md); no prize eligibility or live Sentry receipt is asserted.
 
 ## Verification
 

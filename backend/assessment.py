@@ -126,7 +126,7 @@ class LocalAssessor:
         if schema_json:
             size += len(json.dumps(schema_json).encode('utf-8'))
         if size > self.config.ollama_context - 2048 - 512:
-            raise AppError('local_context_too_large', 'This change or answer history exceeds the local model context budget. Increase OLLAMA_CONTEXT up to 32768 if memory permits and retry; use smaller scopes for new projects. No assessment was guessed.', 422)
+            raise AppError('local_context_too_large', 'Too much code or conversation for one question. Your saved work is unchanged. Start a fresh project with a smaller folder scope and review one small change. Retrying this same checkpoint will not make it smaller. No result was recorded.', 422)
         self.ready()
         body = {'model': self.config.ollama_model, 'messages': messages, 'stream': False,
                 'keep_alive': '10m', 'options': {'temperature': 0, 'num_ctx': self.config.ollama_context, 'num_predict': 2048}}
@@ -263,6 +263,14 @@ not permission to grade or pass. Return only the required JSON.'''},
         return result
 
     def ask(self, prompt, context=None):
+        if context and (len(context.get('files', [])) > 1 or context.get('partial')):
+            from .context_agent import ContextAgent
+            result = ContextAgent(self).run(prompt, context)
+            paths = ', '.join(result['read_paths']) or 'none'
+            return 'Reviewed approved excerpts: ' + paths + '\n\n' + result['text']
+        return self.answer_from_context(prompt, context)
+
+    def answer_from_context(self, prompt, context=None, timeout_seconds=None):
         return self.generate([
             {'role': 'system', 'content': '''You are the BeProgram local coding assistant. Answer the user's coding request using
 the supplied approved saved AFTER code excerpts. These are frozen excerpts, not a live
@@ -276,7 +284,7 @@ case or validation that is absent from the code. When context is empty or insuff
 say you cannot determine the project detail. Missing excerpts mean UNKNOWN, not that the
 project has no files, dependencies or database. General advice is still allowed. Keep the answer
 concise. You cannot run tests, edit files, access other projects or control other assistants.'''},
-            {'role': 'user', 'content': json.dumps({'coding_request': prompt, 'approved_context': context or {'files': []}}, ensure_ascii=False)}])
+            {'role': 'user', 'content': json.dumps({'coding_request': prompt, 'approved_context': context or {'files': []}}, ensure_ascii=False)}], **({'timeout_seconds':timeout_seconds} if timeout_seconds is not None else {}))
 
     def explain(self, checkpoint):
         return self.generate([

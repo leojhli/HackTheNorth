@@ -1,0 +1,144 @@
+{
+  "model": "ollama/qwen2.5-coder:7b",
+  "agent_sha256": "39ef490c3b199f59ee7ed26079b5b2af852fc374a64c7cfed819d81dc893afab",
+  "method": "Actual local tool decisions; synthetic approved excerpts. Expected routes are agent-authored. Text correctness needs separate review. No user project or remote service accessed.",
+  "cases": [
+    {
+      "name": "dependency_and_stale_comment",
+      "approved_context": {
+        "files": [
+          {
+            "path": "src/main.js",
+            "lines": [
+              {
+                "number": 1,
+                "text": "import { limit } from \"./limit.js\";"
+              },
+              {
+                "number": 2,
+                "text": "export function full(n) { return n >= limit; }"
+              }
+            ]
+          },
+          {
+            "path": "src/limit.js",
+            "lines": [
+              {
+                "number": 1,
+                "text": "// Old note: capacity used to be 100."
+              },
+              {
+                "number": 2,
+                "text": "export const limit = 5;"
+              }
+            ]
+          },
+          {
+            "path": "src/colors.js",
+            "lines": [
+              {
+                "number": 1,
+                "text": "export const colors = [\"blue\", \"red\"];"
+              }
+            ]
+          }
+        ],
+        "partial": false
+      },
+      "expected_outcome": "answered",
+      "text": "The function `full(n)` in `src/main.js` returns `true` if `n` is greater than or equal to the value of `limit`, which is imported from `src/limit.js`. Since `limit` is set to `5`, `full(5)` will return `true` because `5` is equal to `limit`.",
+      "steps": [
+        {
+          "action": "inspect_module",
+          "path": "src/main.js"
+        },
+        {
+          "action": "read_excerpt",
+          "path": "src/main.js"
+        },
+        {
+          "action": "read_excerpt",
+          "path": "src/limit.js"
+        },
+        {
+          "action": "answer",
+          "path": ""
+        }
+      ],
+      "outcome": "answered",
+      "read_paths": [
+        "src/main.js",
+        "src/limit.js"
+      ],
+      "route_matches": true,
+      "observed_tool_decisions": [
+        {
+          "tool": "inspect_module:src/main.js",
+          "missing_context": "src/limit.js"
+        }
+      ],
+      "seconds": 2.437
+    },
+    {
+      "name": "missing_dependency",
+      "approved_context": {
+        "files": [
+          {
+            "path": "src/main.js",
+            "lines": [
+              {
+                "number": 1,
+                "text": "import { limit } from \"./limit.js\";"
+              },
+              {
+                "number": 2,
+                "text": "export function full(n) { return n >= limit; }"
+              }
+            ]
+          },
+          {
+            "path": "src/colors.js",
+            "lines": [
+              {
+                "number": 1,
+                "text": "export const colors = [\"blue\", \"red\"];"
+              }
+            ]
+          }
+        ],
+        "partial": true
+      },
+      "expected_outcome": "needs_context",
+      "text": "I need more approved saved context before I can answer reliably: missing module src/limit.js. Review and approve the relevant code in BeProgram, or clarify your request. No unapproved files were read.",
+      "steps": [
+        {
+          "action": "inspect_module",
+          "path": "src/main.js"
+        },
+        {
+          "action": "read_excerpt",
+          "path": "src/main.js"
+        },
+        {
+          "action": "need_context",
+          "reason": "missing module src/limit.js"
+        }
+      ],
+      "outcome": "needs_context",
+      "read_paths": [
+        "src/main.js"
+      ],
+      "route_matches": true,
+      "observed_tool_decisions": [
+        {
+          "tool": "inspect_module:src/main.js",
+          "missing_context": "src/colors.js"
+        }
+      ],
+      "seconds": 0.594
+    }
+  ],
+  "complete": true,
+  "routes_match": true,
+  "independent_quality_review": false
+}

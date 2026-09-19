@@ -108,3 +108,28 @@ def test_expiry_during_inference_discards_response_without_state_changes(app_env
     assert c.get(f"/v1/checkpoints/{cp['id']}").json()['status'] == 'passed'
     with db.transaction() as tx:
         assert tx.scalar(select(Operation).where(Operation.kind == 'ask')).result is None
+
+
+def test_context_agent_stays_behind_gate_and_cached_result_keeps_binding(app_env, monkeypatch):
+    from backend.assessment import LocalAssessor
+    c, app, db, model, conf = app_env
+    _, session = start(c)
+    response = c.post(f"/v1/sessions/{session['id']}/changes", json={'files':[
+        {'path':'src/main.ts','before':BEFORE,'after':AFTER},
+        {'path':'src/noise.ts','before':'export const n=1;','after':'export const n=2;'}],
+        'idempotency_key':'agent-multifile-change'})
+    cp = response.json()['checkpoint']
+    local = LocalAssessor(conf)
+    calls=[]
+    def generate(messages, schema=None, **kwargs):
+        calls.append(messages)
+        return schema(tool='inspect_module:src/main.ts',missing_context='') if schema else 'Grounded suggestion.'
+    monkeypatch.setattr(local,'generate',generate)
+    model.ask=local.ask
+    assert ask(c,session).status_code==409 and not calls
+    answer(c,cp,GOOD)
+    result=ask(c,session)
+    assert result.status_code==200 and 'src/main.ts' in result.json()['text']
+    assert len(calls)==2 and 'export const n=2' not in json.dumps(calls)
+    assert ask(c,session).json()==result.json() and len(calls)==2
+    assert c.get(f"/v1/checkpoints/{cp['id']}").json()['status']=='passed'

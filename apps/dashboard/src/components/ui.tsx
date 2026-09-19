@@ -89,11 +89,11 @@ export function IntegrationMode({ kind }: { kind: IntegrationKind }) {
   }[kind]
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium"
+      className="inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium leading-5"
       style={{ color: meta.color, borderColor: `color-mix(in srgb, ${meta.color} 40%, transparent)` }}
     >
-      <Plug size={13} />
-      {meta.label}
+      <Plug size={13} className="shrink-0" />
+      <span className="min-w-0">{meta.label}</span>
     </span>
   )
 }
