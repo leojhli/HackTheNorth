@@ -1,0 +1,116 @@
+{
+  "name": "beprogram-companion",
+  "displayName": "BeProgram",
+  "description": "Explain saved code changes in your VS Code sidebar and unlock the next BeProgram-managed AI request.",
+  "version": "0.2.0",
+  "publisher": "beprogram-local",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "main": "./extension.cjs",
+  "extensionKind": [
+    "workspace"
+  ],
+  "categories": [
+    "Education",
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:beprogram.checkpoint",
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "build": "node --check extension.cjs && node --check controller.cjs && node --check capture.cjs && node --check protocol.cjs && npm --prefix ../dashboard run build:extension",
+    "test": "node --test test/unit.test.cjs",
+    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license --out ../../artifacts/beprogram-companion.vsix",
+    "test:host": "node test/run-host.cjs",
+    "vscode:prepublish": "npm run build && npm test"
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "beprogram",
+          "title": "BeProgram",
+          "icon": "assets/beprogram.svg"
+        }
+      ]
+    },
+    "views": {
+      "beprogram": [
+        {
+          "id": "beprogram.checkpoint",
+          "name": "Checkpoint",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "beprogram.open",
+        "title": "BeProgram: Open checkpoint"
+      },
+      {
+        "command": "beprogram.connect",
+        "title": "BeProgram: Connect and start scoped session"
+      },
+      {
+        "command": "beprogram.capture",
+        "title": "BeProgram: Review saved changes"
+      },
+      {
+        "command": "beprogram.ask",
+        "title": "BeProgram: Managed Ask AI"
+      },
+      {
+        "command": "beprogram.stop",
+        "title": "BeProgram: End session"
+      },
+      {
+        "command": "beprogram.refresh",
+        "title": "BeProgram: Refresh saved state",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "beprogram.disconnect",
+        "title": "BeProgram: Disconnect account"
+      },
+      {
+        "command": "beprogram.history",
+        "title": "BeProgram: Open learning history"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "beprogram.refresh",
+          "when": "view == beprogram.checkpoint",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "BeProgram",
+      "properties": {
+        "beprogram.apiUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8000",
+          "scope": "machine",
+          "description": "HTTPS backend origin or loopback HTTP origin. Changing it requires reconnecting."
+        }
+      }
+    }
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": {
+      "supported": false
+    }
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^4.0.0"
+  },
+  "license": "UNLICENSED"
+}

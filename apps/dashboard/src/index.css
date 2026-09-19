@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * BeProgram design tokens (section 4 of the handoff).
+ * Dark-first: :root holds dark values, .light overrides them.
+ * ------------------------------------------------------------------ */
+:root {
+  --surface-canvas: #111318;
+  --surface-panel: #191c23;
+  --surface-raised: #232833;
+  --border-subtle: #343c4a;
+  --border-control: #778397;
+  --text-primary: #f2f4f8;
+  --text-secondary: #b5bfce;
+  --action-primary: #b5a4ff;
+  --action-on-primary: #111318;
+  --status-success: #76e0b4;
+  --status-attention: #f0c578;
+  --status-error: #ff9ca9;
+  --status-info: #93c5fd;
+
+  color-scheme: dark;
+}
+
+.light {
+  --surface-canvas: #f7f8fa;
+  --surface-panel: #ffffff;
+  --surface-raised: #eef1f5;
+  --border-subtle: #d8dde6;
+  --border-control: #68758a;
+  --text-primary: #171b24;
+  --text-secondary: #4e5b70;
+  --action-primary: #5936c9;
+  --action-on-primary: #ffffff;
+  --status-success: #176a47;
+  --status-attention: #875500;
+  --status-error: #a7253d;
+  --status-info: #205dab;
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-canvas: var(--surface-canvas);
+  --color-panel: var(--surface-panel);
+  --color-raised: var(--surface-raised);
+  --color-subtle: var(--border-subtle);
+  --color-control: var(--border-control);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-action: var(--action-primary);
+  --color-on-action: var(--action-on-primary);
+  --color-success: var(--status-success);
+  --color-attention: var(--status-attention);
+  --color-error: var(--status-error);
+  --color-info: var(--status-info);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-dialog: 12px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+  body {
+    background: var(--surface-canvas);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Section 4 / 14: visible 2px focus with 2px offset, never color-only. */
+  :focus-visible {
+    outline: 2px solid var(--action-primary);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--action-primary) 32%, transparent);
+    color: var(--text-primary);
+  }
+}
+
+/* Motion: 120-180ms state changes; honor reduced motion (section 4). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbars: quiet by default, surface on hover/scroll. */
+.bp-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.bp-scroll:hover,
+.bp-scroll:focus-within {
+  scrollbar-color: var(--border-subtle) transparent;
+}
+.bp-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.bp-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.bp-scroll:hover::-webkit-scrollbar-thumb,
+.bp-scroll:focus-within::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  background-clip: content-box;
+}
+
+@keyframes bp-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bp-enter {
+  animation: bp-fade-in 160ms ease-out;
+}
+
+@keyframes bp-draw-check {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.bp-check path {
+  stroke-dasharray: 24;
+  animation: bp-draw-check 240ms ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bp-check path {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+}
+
+@keyframes bp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.bp-spin {
+  animation: bp-spin 900ms linear infinite;
+}

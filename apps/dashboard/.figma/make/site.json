@@ -1,0 +1,11 @@
+{
+  "title": "BeProgram — Understand what you build",
+  "description": "Explain meaningful code changes, receive contextual feedback, and keep a private history of demonstrated understanding.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": true,
+    "ignoreReducedMotion": false
+  }
+}

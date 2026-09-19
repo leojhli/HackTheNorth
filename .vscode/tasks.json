@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [{
+    "label": "Build BeProgram sidebar",
+    "type": "shell",
+    "command": "powershell",
+    "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/build-extension.ps1"],
+    "problemMatcher": [],
+    "group": "build"
+  }]
+}

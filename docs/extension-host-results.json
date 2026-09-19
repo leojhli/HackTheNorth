@@ -1,0 +1,13 @@
+{
+  "passed": 6,
+  "results": [
+    "Extension activation, real sidebar creation and React/host handshake",
+    "CSP, local resource scope and no bearer token in webview HTML",
+    "Git capture preview/cancel/approval and persisted pending checkpoint",
+    "Version rejection, adaptive follow-up and extension-controller restart recovery",
+    "Persisted pass, matching dashboard history and next managed AI response inside editor",
+    "SecretStorage disconnect and private-state clearing"
+  ],
+  "provider": "Explicit test-only assessor; no live OpenAI call",
+  "artifact_sha256": "ed632c4ebce9f4d071e537be4cf74151a686ae262624194a2578f680a17db585"
+}

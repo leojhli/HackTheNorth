@@ -1,0 +1,616 @@
+// The extension surface — the visual center of the product (section 8).
+// Renders every E-screen from a single reusable panel, driven by ExtensionState.
+import { useEffect, useRef, useState } from 'react'
+import type { ExtensionState } from '../lib/machine'
+import { useProduct } from '../lib/product'
+import {
+  Button,
+  StatusBadge,
+  ConnectionIndicator,
+  IntegrationMode,
+  TextArea,
+  InlineNotice,
+  Wordmark,
+  Disclosure,
+  FilePath,
+} from './ui'
+import { CodeDiff, CodePlain } from './CodeExcerpt'
+import { SpeechPlayback, VoiceAnswer } from './Voice'
+import { Check, ExternalLink, Sparkle, ChevronRight, Pause, Clock, Settings, Alert, Plug } from '../lib/icons'
+
+export type ExtActions = {
+  connectAccount: () => void
+  continueSetup: () => void
+  startSession: () => void
+  cancelSetup: () => void
+  triggerAiRequest: () => void
+  reviewChanges: () => void
+  openCheckpoint: () => void
+  keepEditing: () => void
+  submitInitial: () => void
+  submitFollowup: () => void
+  continueCoding: () => void
+  pauseCheckpoint: () => void
+  resumeCheckpoint: () => void
+  endSession: () => void
+  retry: () => void
+  reconnect: () => void
+  setInitialDraft: (v: string) => void
+  setInitialVoiceDraft?: (v: string) => void
+  setFollowupVoiceDraft?: (v: string) => void
+  setFollowupDraft: (v: string) => void
+  openHistory: () => void
+  openSettings: () => void
+  createReceipt: () => void
+}
+
+export function ExtensionPanel({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  return (
+    <section
+      aria-label="BeProgram checkpoint panel"
+      className="@container flex h-full flex-col bg-panel text-primary"
+    >
+      <PanelHeader s={s} a={a} />
+      <div key={s.phase} className="bp-scroll bp-enter flex-1 overflow-y-auto">
+        <div className="p-5 @[720px]:p-6">
+          {s.phase === 'welcome' && <Welcome s={s} a={a} />}
+          {s.phase === 'scope' && <Scope a={a} />}
+          {s.phase === 'active' && <ActiveSession s={s} a={a} />}
+          {s.phase === 'analyzing' && <Analyzing />}
+          {(s.phase === 'checkpoint' || s.phase === 'evaluating') && <Checkpoint s={s} a={a} />}
+          {(s.phase === 'followup' || s.phase === 'followup-evaluating') && <Followup s={s} a={a} />}
+          {s.phase === 'verified' && <Verified s={s} a={a} />}
+          {s.phase === 'paused' && <PausedCheckpoint a={a} />}
+          {s.phase === 'error' && <ErrorState s={s} a={a} />}
+          {s.phase === 'disconnected' && <Disconnected a={a} />}
+        </div>
+      </div>
+      <StatusBar s={s} />
+    </section>
+  )
+}
+
+/* ------------------------------- Chrome -------------------------------- */
+function PanelHeader({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  return (
+    <header className="flex items-center justify-between gap-3 border-b border-subtle px-5 py-3">
+      <Wordmark size="sm" />
+      <div className="flex items-center gap-3">
+        <ConnectionIndicator kind={s.connection} />
+        {s.phase !== 'welcome' && s.phase !== 'scope' && (
+          <button
+            onClick={a.openSettings}
+            aria-label="Project settings"
+            className="rounded-[var(--radius-control)] p-1.5 text-secondary hover:bg-raised hover:text-primary"
+          >
+            <Settings size={16} />
+          </button>
+        )}
+      </div>
+    </header>
+  )
+}
+
+function StatusBar({ s }: { s: ExtensionState }) {
+  const fx = useProduct()
+  const label =
+    s.phase === 'welcome' || s.phase === 'scope'
+      ? 'BeProgram: not started'
+      : s.phase === 'disconnected'
+        ? 'BeProgram: reconnecting'
+        : s.gate === 'paused'
+          ? 'BeProgram: checkpoint required'
+          : s.phase === 'analyzing'
+            ? 'BeProgram: reviewing changes'
+            : 'BeProgram: ready'
+  return (
+    <div className="flex items-center justify-between border-t border-subtle bg-canvas px-5 py-1.5 text-[12px] text-secondary">
+      <span className="flex items-center gap-1.5 font-mono">
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: s.gate === 'paused' ? 'var(--status-attention)' : 'var(--status-info)' }}
+        />
+        {label}
+      </span>
+      <span className="font-mono">{fx.LANGUAGE}</span>
+    </div>
+  )
+}
+
+/* ------------------------------- E01 ----------------------------------- */
+function Welcome({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  const fx = useProduct()
+  return (
+    <div className="mx-auto max-w-[520px] space-y-5">
+      <div className="space-y-2">
+        <h1 className="text-[18px] font-semibold leading-[26px]">Understand what you build</h1>
+        <p className="text-[14px] leading-[22px] text-secondary">
+          BeProgram adds a short comprehension checkpoint after meaningful AI-assisted changes, so you can
+          keep coding with confidence in what the code does.
+        </p>
+      </div>
+
+      <div className="space-y-3 rounded-[var(--radius-panel)] border border-subtle bg-canvas p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium">Account</span>
+          {s.accountConnected ? (
+            <span className="inline-flex items-center gap-1.5 text-[13px] text-success">
+              <Check size={14} /> Account connected
+            </span>
+          ) : (
+            <span className="text-[13px] text-secondary">Not connected</span>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium">Integration</span>
+          <IntegrationMode kind={s.integration} />
+        </div>
+      </div>
+
+      {!s.accountConnected ? (
+        <div className="space-y-2">
+          <Button onClick={a.connectAccount} className="w-full @[720px]:w-auto">
+            Connect account <ExternalLink size={14} />
+          </Button>
+          <p className="text-[12px] leading-[18px] text-secondary">
+            {fx.ACCOUNT_CONNECT_HINT}
+          </p>
+        </div>
+      ) : (
+        <Button onClick={a.continueSetup} className="w-full @[720px]:w-auto">
+          Continue <ChevronRight size={14} />
+        </Button>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------- E02 ----------------------------------- */
+function Scope({ a }: { a: ExtActions }) {
+  const fx = useProduct()
+  return (
+    <div className="mx-auto max-w-[560px] space-y-5">
+      <div className="space-y-1">
+        <h1 className="text-[18px] font-semibold leading-[26px]">Start a coding session</h1>
+        <p className="text-[13px] text-secondary">
+          Project <span className="font-mono text-primary">{fx.PROJECT}</span> · {fx.LANGUAGE} · Approved file scope
+        </p>
+      </div>
+
+      <Disclosure defaultOpen summary={<span>Included source files ({fx.INCLUDED_FILES.length})</span>}>
+        <ul className="space-y-1.5">
+          {fx.INCLUDED_FILES.map((f) => (
+            <li key={f} className="flex items-center justify-between gap-3">
+              <FilePath path={f} />
+              <label className="flex items-center gap-1.5 text-[12px] text-secondary">
+                <input type="checkbox" checked readOnly className="accent-[var(--action-primary)]" /> Included
+              </label>
+            </li>
+          ))}
+        </ul>
+      </Disclosure>
+
+      <Disclosure summary={<span>Excluded files ({fx.EXCLUDED_FILES.length})</span>}>
+        <ul className="space-y-1.5">
+          {fx.EXCLUDED_FILES.map((f) => (
+            <li key={f.path} className="flex items-center justify-between gap-3">
+              <FilePath path={f.path} />
+              <span className="whitespace-nowrap text-[12px] text-secondary">{f.reason}</span>
+            </li>
+          ))}
+        </ul>
+      </Disclosure>
+
+      <InlineNotice kind="info" title="What is shared">
+        {fx.PROVIDER_DISCLOSURE}
+      </InlineNotice>
+
+      <div className="flex flex-col gap-2 @[720px]:flex-row">
+        <Button onClick={a.startSession} className="w-full @[720px]:w-auto">
+          Start session
+        </Button>
+        <Button variant="secondary" onClick={a.cancelSetup} className="w-full @[720px]:w-auto">
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------- E03 ----------------------------------- */
+function ActiveSession({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  const fx = useProduct()
+  const [elapsed, setElapsed] = useState('00:00')
+  useEffect(() => {
+    // Elapsed time is quiet metadata; a lightweight ticking illustration.
+    let sec = Math.max(0, Math.floor(Date.now() / 1000 - fx.SESSION_STARTED))
+    const id = setInterval(() => {
+      sec += 1
+      setElapsed(`${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`)
+    }, 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <div className="mx-auto max-w-[560px] space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-[18px] font-semibold leading-[26px]">Session active</h1>
+          <p className="mt-1 text-[13px] text-secondary">
+            <span className="font-mono text-primary">{fx.PROJECT}</span> · {fx.LANGUAGE}
+          </p>
+        </div>
+        <span className="flex items-center gap-1.5 font-mono text-[12px] text-secondary">
+          <Clock size={13} /> {elapsed}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 rounded-[var(--radius-panel)] border border-subtle bg-canvas px-3 py-2.5 text-[13px]">
+        <span className="h-2 w-2 rounded-full bg-info" />
+        Ready for approved saved changes
+      </div>
+
+      {s.showPausedRequestNotice && (
+        // E09 — surfaced only when the user tries the connected AI action.
+        <div className="space-y-3 rounded-[var(--radius-panel)] border p-4"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--status-attention) 40%, transparent)',
+            background: 'color-mix(in srgb, var(--status-attention) 8%, transparent)',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Plug size={16} className="text-attention" />
+            <h2 className="text-[15px] font-semibold">Explain this change to continue</h2>
+          </div>
+          <p className="text-[13px] leading-5 text-secondary">
+            Your next {fx.INTEGRATION_LABEL.replace(' connected', '')} request is paused until you explain{' '}
+            <span className="text-primary">{fx.CONCEPT}</span> in{' '}
+            <span className="font-mono text-primary">{fx.CURRENT_FILE}</span>.
+          </p>
+          <div className="flex flex-col gap-2 @[720px]:flex-row">
+            <Button onClick={a.openCheckpoint}>Open checkpoint</Button>
+            <Button variant="secondary" onClick={a.keepEditing}>
+              Keep editing
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h3 className="mb-2 text-[13px] font-medium text-secondary">Recently demonstrated</h3>
+        <ul className="space-y-1.5">
+          {fx.DEMONSTRATED_CONCEPTS.map((c) => (
+            <li key={c} className="flex items-center gap-2 text-[13px]">
+              <Check size={14} className="text-success" /> {c}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-col gap-2 @[720px]:flex-row">
+        <Button onClick={a.reviewChanges}>Review current changes</Button>
+        <Button variant="secondary" onClick={a.triggerAiRequest}>
+          <Sparkle size={14} /> Send AI request
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-subtle pt-4 text-[13px]">
+        <button onClick={a.openHistory} className="text-action hover:underline">
+          Open learning history
+        </button>
+        <button onClick={a.openSettings} className="text-action hover:underline">
+          Project settings
+        </button>
+        <button onClick={a.endSession} className="text-secondary hover:text-primary hover:underline">
+          End session
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------- E04 ----------------------------------- */
+function Analyzing() {
+  const fx = useProduct()
+  return (
+    <div className="mx-auto max-w-[520px] space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="bp-spin inline-block h-4 w-4 rounded-full border-2 border-info border-t-transparent" />
+        <h1 className="text-[16px] font-semibold">Reviewing your latest changes…</h1>
+      </div>
+      <p className="text-[13px] text-secondary">
+        Checking this change before your next AI request. You can keep editing and running your code.
+      </p>
+      <CodePlain file={fx.CURRENT_FILE} code={fx.CAPTURED_CODE} label="In review" />
+    </div>
+  )
+}
+
+/* --------------------------- E05 / E06 --------------------------------- */
+function Checkpoint({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  const fx = useProduct()
+  const evaluating = s.phase === 'evaluating'
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  useEffect(() => {
+    // Focus the heading when opened; let the user move to the field (section 14).
+    headingRef.current?.focus()
+  }, [])
+  const empty = s.initialDraft.trim().length === 0
+
+  return (
+    <div className="mx-auto max-w-[760px] space-y-5">
+      <div className="space-y-1.5">
+        <p className="text-[12px] font-medium uppercase tracking-wide text-action">Comprehension checkpoint</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 ref={headingRef} tabIndex={-1} className="text-[18px] font-semibold leading-[26px] outline-none">
+            {fx.CONCEPT}
+          </h1>
+          <StatusBadge kind="needs-explanation" />
+        </div>
+        <p className="text-[13px] text-secondary">
+          <FilePath path={fx.CURRENT_FILE} /> — {fx.REASON}
+        </p>
+      </div>
+
+      {/* At ≥720px: code and explanation side by side (44% / 56%). */}
+      <div className="flex flex-col gap-5 @[720px]:flex-row">
+        <div className="@[720px]:w-[44%]">
+          <CodeDiff file={fx.CURRENT_FILE} capturedAt={fx.CAPTURED_AT} lines={fx.CAPTURED_DIFF} />
+        </div>
+
+        <div className="space-y-4 @[720px]:w-[56%]">
+          <div className="flex items-start gap-2">
+            <SpeechPlayback text={fx.INITIAL_QUESTION} />
+            <QuestionBlock question={fx.INITIAL_QUESTION} />
+          </div>
+          <TextArea
+            label="Your explanation"
+            placeholder="Explain how this works in your own words."
+            value={s.initialDraft}
+            onChange={(e) => a.setInitialDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !empty && !evaluating) a.submitInitial()
+            }}
+            disabled={evaluating}
+            className="min-h-[140px]"
+            helper={<span>Ctrl/⌘ + Enter to submit</span>}
+          />
+          {!evaluating && <VoiceAnswer onTranscript={a.setInitialVoiceDraft || a.setInitialDraft} />}
+          <div className="flex flex-col gap-2 @[720px]:flex-row">
+            <Button onClick={a.submitInitial} disabled={empty} loading={evaluating}>
+              {evaluating ? 'Checking explanation…' : 'Submit explanation'}
+            </Button>
+            {!evaluating && (
+              <Button variant="secondary" onClick={a.pauseCheckpoint}>
+                <Pause size={14} /> Pause checkpoint
+              </Button>
+            )}
+          </div>
+          <InlineNotice kind="pending">
+            Your next managed AI request is paused. You can still edit and run your code.
+          </InlineNotice>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------- E07 ----------------------------------- */
+function Followup({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  const fx = useProduct()
+  const evaluating = s.phase === 'followup-evaluating'
+  const empty = s.followupDraft.trim().length === 0
+  return (
+    <div className="mx-auto max-w-[760px] space-y-5">
+      <div className="space-y-1.5">
+        <p className="text-[12px] font-medium uppercase tracking-wide text-action">Comprehension checkpoint</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-[18px] font-semibold leading-[26px]">One detail to clarify</h1>
+          <StatusBadge kind="needs-followup" />
+        </div>
+      </div>
+
+      <Disclosure summary={<span>Previous answer</span>}>
+        <div className="space-y-2 text-[13px]">
+          <p className="text-secondary">{fx.INITIAL_QUESTION}</p>
+          <p className="rounded-[var(--radius-control)] bg-canvas p-2.5 text-primary">{s.initialDraft}</p>
+        </div>
+      </Disclosure>
+
+      <div className="flex flex-col gap-5 @[720px]:flex-row">
+        <div className="@[720px]:w-[44%]">
+          <CodeDiff file={fx.CURRENT_FILE} capturedAt={fx.CAPTURED_AT} lines={fx.CAPTURED_DIFF} />
+        </div>
+        <div className="space-y-4 @[720px]:w-[56%]">
+          <InlineNotice kind="info" title="Feedback">
+            {fx.FOLLOWUP_FEEDBACK}
+          </InlineNotice>
+          <div className="flex items-start gap-2">
+            <SpeechPlayback text={fx.FOLLOWUP_QUESTION} />
+            <QuestionBlock question={fx.FOLLOWUP_QUESTION} />
+          </div>
+          <TextArea
+            label="Your follow-up answer"
+            placeholder="Explain in your own words."
+            value={s.followupDraft}
+            onChange={(e) => a.setFollowupDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !empty && !evaluating) a.submitFollowup()
+            }}
+            disabled={evaluating}
+            className="min-h-[140px]"
+            helper={<span>Ctrl/⌘ + Enter to submit</span>}
+          />
+          {!evaluating && <VoiceAnswer onTranscript={a.setFollowupVoiceDraft || a.setFollowupDraft} />}
+          <div className="flex flex-col gap-2 @[720px]:flex-row">
+            <Button onClick={a.submitFollowup} disabled={empty} loading={evaluating}>
+              {evaluating ? 'Checking explanation…' : 'Submit follow-up'}
+            </Button>
+            <Button variant="secondary" onClick={a.pauseCheckpoint}>
+              <Pause size={14} /> Pause checkpoint
+            </Button>
+          </div>
+          <p className="text-[12px] text-secondary">
+            Your managed AI request stays paused until this checkpoint is resolved.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------- E08 ----------------------------------- */
+function Verified({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  const fx = useProduct()
+  const saved = s.gate === 'available'
+  return (
+    <div className="mx-auto max-w-[560px] space-y-5">
+      <div className="flex items-start gap-3">
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+          style={{ background: 'color-mix(in srgb, var(--status-success) 16%, transparent)' }}
+        >
+          <span className="bp-check text-success">
+            <Check size={22} />
+          </span>
+        </span>
+        <div className="space-y-1">
+          <h1 className="text-[18px] font-semibold leading-[26px]">Understanding verified</h1>
+          <p className="text-[14px] leading-[22px] text-secondary">
+            {fx.CONCEPT} — {fx.SUCCESS_FEEDBACK}
+          </p>
+        </div>
+      </div>
+
+      {saved ? (
+        <InlineNotice kind="success">Saved to your learning history.</InlineNotice>
+      ) : (
+        <InlineNotice kind="pending">Saving your result… your AI gate stays pending until this confirms.</InlineNotice>
+      )}
+
+      <div className="flex flex-col gap-2 @[720px]:flex-row">
+        <Button onClick={a.continueCoding} disabled={!saved}>
+          Continue coding
+        </Button>
+        <Button variant="secondary" onClick={a.openHistory}>
+          View learning history
+        </Button>
+      </div>
+      {saved && (
+        <p className="flex items-center gap-1.5 text-[13px] text-success">
+          <Check size={14} /> Managed AI checkpoint cleared
+        </p>
+      )}
+      {saved && fx.RECEIPTS_ENABLED && (
+        // Low-emphasis, optional (section 4). Not required to keep coding.
+        <button onClick={a.createReceipt} className="text-[13px] text-secondary underline decoration-dotted hover:text-primary">
+          Create verifiable receipt
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------- E10 ----------------------------------- */
+function PausedCheckpoint({ a }: { a: ExtActions }) {
+  const fx = useProduct()
+  return (
+    <div className="mx-auto max-w-[520px] space-y-5">
+      <div className="flex items-center gap-3">
+        <Pause size={20} className="text-secondary" />
+        <h1 className="text-[18px] font-semibold leading-[26px]">Checkpoint paused</h1>
+      </div>
+      <p className="text-[14px] leading-[22px] text-secondary">
+        Submitted explanations are saved. Your unsent draft stays in this tab. Managed Ask AI still needs this checkpoint.
+      </p>
+      <CodePlain file={fx.CURRENT_FILE} code={fx.CAPTURED_CODE} label="Captured for this checkpoint" capturedAt={fx.CAPTURED_AT} />
+      <div className="flex flex-col gap-2 @[720px]:flex-row">
+        <Button onClick={a.resumeCheckpoint}>Resume checkpoint</Button>
+        <Button variant="secondary" onClick={a.endSession}>
+          End session
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------- E11 ----------------------------------- */
+function ErrorState({ s, a }: { s: ExtensionState; a: ExtActions }) {
+  const saving = s.errorVariant === 'saving'
+  return (
+    <div className="mx-auto max-w-[520px] space-y-5">
+      <div className="flex items-center gap-3">
+        <Alert size={20} className="text-error" />
+        <h1 className="text-[18px] font-semibold leading-[26px]">
+          {saving ? 'We couldn’t confirm your saved result' : 'We couldn’t check your explanation'}
+        </h1>
+      </div>
+      <InlineNotice kind="error">
+        {saving
+          ? 'Your explanation passed, but saving it to your history hasn’t confirmed yet. Your draft is still in this panel.'
+          : 'Your answer is saved here. Try again when the connection returns.'}
+      </InlineNotice>
+      <div className="rounded-[var(--radius-control)] border border-subtle bg-canvas p-3 text-[13px]">
+        <div className="mb-1 text-[12px] font-medium text-secondary">Your draft</div>
+        <p className="text-primary">{s.followupDraft || s.initialDraft || '—'}</p>
+      </div>
+      <div className="flex flex-col gap-2 @[720px]:flex-row">
+        <Button onClick={a.retry}>Retry</Button>
+        <Button variant="secondary" onClick={a.keepEditing}>
+          Keep editing
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------- E12 ----------------------------------- */
+function Disconnected({ a }: { a: ExtActions }) {
+  return (
+    <div className="mx-auto max-w-[520px] space-y-5">
+      <div className="flex items-center gap-3">
+        <Plug size={20} className="text-attention" />
+        <h1 className="text-[18px] font-semibold leading-[26px]">Reconnect your coding assistant</h1>
+      </div>
+      <p className="text-[14px] leading-[22px] text-secondary">
+        BeProgram can’t confirm the connected AI workflow right now. Your checkpoint and draft are still
+        available.
+      </p>
+      <div className="grid gap-2 @[720px]:grid-cols-2">
+        <div className="rounded-[var(--radius-panel)] border border-subtle bg-canvas p-3">
+          <div className="mb-1.5 text-[12px] font-medium text-secondary">Connection</div>
+          <ConnectionIndicator kind="disconnected" />
+        </div>
+        <div className="rounded-[var(--radius-panel)] border border-subtle bg-canvas p-3">
+          <div className="mb-1.5 text-[12px] font-medium text-secondary">Checkpoint</div>
+          <StatusBadge kind="needs-followup" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 @[720px]:flex-row">
+        <Button onClick={a.reconnect}>Reconnect</Button>
+        <Button variant="secondary" onClick={a.openCheckpoint}>
+          Open checkpoint
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ---------------------------- QuestionBlock ---------------------------- */
+function QuestionBlock({ question }: { question: string }) {
+  // Render `code` spans from the fixture's backtick markup.
+  const parts = question.split(/(`[^`]+`)/g)
+  return (
+    <p className="text-[17px] font-medium leading-[26px] text-primary">
+      {parts.map((p, i) =>
+        p.startsWith('`') && p.endsWith('`') ? (
+          <code key={i} className="rounded bg-raised px-1 py-0.5 font-mono text-[15px] text-action">
+            {p.slice(1, -1)}
+          </code>
+        ) : (
+          <span key={i}>{p}</span>
+        ),
+      )}
+    </p>
+  )
+}
