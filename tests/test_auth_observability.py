@@ -50,7 +50,7 @@ def test_actual_sentry_envelopes_redact_sensitive_payloads():
         assert correlation in serialized
         # Correlation survives independently in error, trace and lifecycle log payloads.
         assert serialized.count(correlation) >= 3
-        assert 'transaction' in serialized and 'log' in serialized and 'BeProgram operational failure' in serialized
+        assert 'transaction' in serialized and 'log' in serialized and 'CodeProof operational failure' in serialized
     finally:
         sentry_sdk.get_global_scope().set_client(old)
         client.close()

@@ -2,7 +2,7 @@
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
-archive = Path(r'C:\Users\Mathe\Downloads\BeProgram.zip')
+archive = Path(r'C:\Users\Mathe\Downloads\CodeProof.zip')
 target = Path('apps/dashboard').resolve()
 with ZipFile(archive) as z:
     for entry in z.infolist():

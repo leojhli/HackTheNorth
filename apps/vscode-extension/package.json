@@ -1,9 +1,9 @@
 {
-  "name": "beprogram-companion",
-  "displayName": "BeProgram",
-  "description": "Explain saved code changes in your VS Code sidebar and unlock the next BeProgram-managed AI request.",
-  "version": "0.4.4",
-  "publisher": "beprogram-local",
+  "name": "codeproof-companion",
+  "displayName": "CodeProof",
+  "description": "Explain saved code changes in your VS Code sidebar and unlock the next CodeProof-managed AI request.",
+  "version": "0.4.5",
+  "publisher": "codeproof-local",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -16,13 +16,13 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:beprogram.checkpoint",
+    "onView:codeproof.checkpoint",
     "onStartupFinished"
   ],
   "scripts": {
     "build": "node --check extension.cjs && node --check controller.cjs && node --check capture.cjs && node --check protocol.cjs && npm --prefix ../dashboard run build:extension",
     "test": "node --test test/unit.test.cjs",
-    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license --out ../../artifacts/beprogram-companion.vsix",
+    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license --out ../../artifacts/codeproof-companion.vsix",
     "test:host": "node test/run-host.cjs",
     "vscode:prepublish": "npm run build && npm test"
   },
@@ -30,16 +30,16 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "beprogram",
-          "title": "BeProgram",
-          "icon": "assets/beprogram.svg"
+          "id": "codeproof",
+          "title": "CodeProof",
+          "icon": "assets/codeproof.svg"
         }
       ]
     },
     "views": {
-      "beprogram": [
+      "codeproof": [
         {
-          "id": "beprogram.checkpoint",
+          "id": "codeproof.checkpoint",
           "name": "Checkpoint",
           "type": "webview"
         }
@@ -47,52 +47,56 @@
     },
     "commands": [
       {
-        "command": "beprogram.open",
-        "title": "BeProgram: Open checkpoint"
+        "command": "codeproof.open",
+        "title": "CodeProof: Open checkpoint"
       },
       {
-        "command": "beprogram.connect",
-        "title": "BeProgram: Connect and start scoped session"
+        "command": "codeproof.connect",
+        "title": "CodeProof: Connect and start scoped session"
       },
       {
-        "command": "beprogram.capture",
-        "title": "BeProgram: Review saved changes"
+        "command": "codeproof.capture",
+        "title": "CodeProof: Review saved changes"
       },
       {
-        "command": "beprogram.ask",
-        "title": "BeProgram: Managed Ask AI"
+        "command": "codeproof.ask",
+        "title": "CodeProof: Managed Ask AI"
       },
       {
-        "command": "beprogram.stop",
-        "title": "BeProgram: End session"
+        "command": "codeproof.stop",
+        "title": "CodeProof: End session"
       },
       {
-        "command": "beprogram.refresh",
-        "title": "BeProgram: Refresh saved state",
+        "command": "codeproof.refresh",
+        "title": "CodeProof: Refresh saved state",
         "icon": "$(refresh)"
       },
       {
-        "command": "beprogram.disconnect",
-        "title": "BeProgram: Disconnect account"
+        "command": "codeproof.projects",
+        "title": "CodeProof: Manage saved projects"
       },
       {
-        "command": "beprogram.history",
-        "title": "BeProgram: Open learning history"
+        "command": "codeproof.disconnect",
+        "title": "CodeProof: Disconnect account"
+      },
+      {
+        "command": "codeproof.history",
+        "title": "CodeProof: Open learning history"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "beprogram.refresh",
-          "when": "view == beprogram.checkpoint",
+          "command": "codeproof.refresh",
+          "when": "view == codeproof.checkpoint",
           "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "BeProgram",
+      "title": "CodeProof",
       "properties": {
-        "beprogram.apiUrl": {
+        "codeproof.apiUrl": {
           "type": "string",
           "default": "http://127.0.0.1:8000",
           "scope": "machine",

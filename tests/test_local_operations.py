@@ -49,7 +49,7 @@ def test_doctor_does_not_expose_credentials_or_private_response(monkeypatch):
         if request.url.path == '/health':
             return httpx.Response(200, json={'status': 'ok'})
         if request.url.path == '/v1/config':
-            return httpx.Response(200, json={'integration': 'beprogram_managed', 'cost_mode': 'local_only', 'ai': {'model': config.ollama_model}})
+            return httpx.Response(200, json={'integration': 'codeproof_managed', 'cost_mode': 'local_only', 'ai': {'model': config.ollama_model}})
         return httpx.Response(200, json=[{'name': 'PRIVATE_PROJECT', 'answer': 'PRIVATE_ANSWER'}])
     with httpx.Client(base_url='http://127.0.0.1:8000', transport=httpx.MockTransport(handler)) as client:
         report = inspect(config, client)

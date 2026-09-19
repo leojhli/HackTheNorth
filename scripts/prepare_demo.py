@@ -45,7 +45,7 @@ def main():
         subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True)
     git('init')
     git('add', '.')
-    git('-c', 'user.name=BeProgram demo', '-c', 'user.email=demo@localhost', '-c', 'commit.gpgsign=false', 'commit', '-m', 'Demo baseline')
+    git('-c', 'user.name=CodeProof demo', '-c', 'user.email=demo@localhost', '-c', 'commit.gpgsign=false', 'commit', '-m', 'Demo baseline')
     source.write_text(AFTER, encoding='utf-8')
     print('Open this folder in VS Code, choose scope src, and review its saved change:')
     print(root)

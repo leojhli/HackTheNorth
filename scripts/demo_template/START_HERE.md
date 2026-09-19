@@ -1,4 +1,4 @@
-# Your first BeProgram demo
+# Your first CodeProof demo
 
 This is a small event signup website. You do not need to understand every file.
 It has five available spots. You can add or remove guests using the buttons.
@@ -12,7 +12,7 @@ Open a terminal in this folder and run:
 ./start-demo.ps1
 ```
 
-Then visit http://127.0.0.1:8010. This preview is separate from BeProgram on
+Then visit http://127.0.0.1:8010. This preview is separate from CodeProof on
 port 8000. Keep its terminal open. Press Add one guest five times: the button
 stops at five. Remove a guest and you can add someone again.
 
@@ -48,16 +48,16 @@ In everyday language: "If the room is full, say no. Otherwise, say yes."
 | 4 | 5 | Yes: the next guest takes the last spot |
 | 5 | 5 | No: already full |
 
-## 3. Start BeProgram
+## 3. Start CodeProof
 
 With this folder open as the VS Code workspace:
 
-1. Run **BeProgram: Connect and start scoped session** from Ctrl+Shift+P.
-2. Enter your local token from the main BeProgram project's `.env`.
+1. Run **CodeProof: Connect and start scoped session** from Ctrl+Shift+P.
+2. Enter your local token from the main CodeProof project's `.env`.
 3. Select **Create project**, accept the folder name, and enter scope `src`.
 4. Click **Start session**.
-5. Run **BeProgram: Review saved changes** and approve the preview.
-6. Open **BeProgram: Open checkpoint** and answer in your own words.
+5. Run **CodeProof: Review saved changes** and approve the preview.
+6. Open **CodeProof: Open checkpoint** and answer in your own words.
 
 There is no need to make another edit or commit the prepared change.
 

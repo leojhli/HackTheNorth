@@ -10,8 +10,8 @@ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 exports.run=async()=>{
   const results=[];
   const root=vscode.workspace.workspaceFolders[0].uri.fsPath;
-  await vscode.workspace.getConfiguration('beprogram').update('apiUrl','http://127.0.0.1:8011',vscode.ConfigurationTarget.Global);
-  const extension=vscode.extensions.getExtension('beprogram-local.beprogram-companion');
+  await vscode.workspace.getConfiguration('codeproof').update('apiUrl','http://127.0.0.1:8011',vscode.ConfigurationTarget.Global);
+  const extension=vscode.extensions.getExtension('codeproof-local.codeproof-companion');
   assert(extension,'Installed development extension was discovered');
   const api=await extension.activate();
   const {Controller}=require(path.join(extension.extensionPath,'controller.cjs'));
@@ -28,16 +28,16 @@ exports.run=async()=>{
     env:{value:Object.create(vscode.env,{openExternal:{value:async()=>{external++;return true;}}})}
   });
   try{
-    await controller.context.secrets.store('beprogram.token:http://127.0.0.1:8011',TOKEN);
+    await controller.context.secrets.store('codeproof.token:http://127.0.0.1:8011',TOKEN);
     const call=async(route,body)=>{
       const response=await fetch('http://127.0.0.1:8011'+route,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
       assert(response.ok,await response.clone().text());return response.json();
     };
     const project=await call('/v1/projects',{name:'VS Code integration fixture',scope:['src']});
     const session=await call('/v1/sessions',{project_id:project.id});
-    await controller.context.workspaceState.update('beprogram.session',{root,origin:'http://127.0.0.1:8011',projectId:project.id,sessionId:session.id});
+    await controller.context.workspaceState.update('codeproof.session',{root,origin:'http://127.0.0.1:8011',projectId:project.id,sessionId:session.id});
     await controller.execute('ready');
-    await vscode.commands.executeCommand('beprogram.open');
+    await vscode.commands.executeCommand('codeproof.open');
     for(let n=0;n<100&&!api.getView();n++)await wait(100);
     assert(api.getView(),'Real VS Code WebviewView was created');
     for(let n=0;n<100&&!api.isReady();n++)await wait(100);
@@ -80,10 +80,10 @@ exports.run=async()=>{
     results.push('Persisted pass, matching dashboard history and next managed AI response inside editor');
 
     await controller.execute('disconnect');
-    assert.equal(await controller.context.secrets.get('beprogram.token:http://127.0.0.1:8011'),undefined);
+    assert.equal(await controller.context.secrets.get('codeproof.token:http://127.0.0.1:8011'),undefined);
     assert.equal(controller.state.checkpoint,null);
     results.push('SecretStorage disconnect and private-state clearing');
-    await fs.writeFile(path.join(process.env.BEPROGRAM_TEST_RUN,'host-results.json'),JSON.stringify({passed:results.length,results,provider:'Explicit test-only assessor; no live model call'},null,2));
-    console.log('BEPROGRAM_HOST_TESTS_PASSED '+results.length);
+    await fs.writeFile(path.join(process.env.CODEPROOF_TEST_RUN,'host-results.json'),JSON.stringify({passed:results.length,results,provider:'Explicit test-only assessor; no live model call'},null,2));
+    console.log('CODEPROOF_HOST_TESTS_PASSED '+results.length);
   }finally{controller.vscode=originalVscode;}
 };

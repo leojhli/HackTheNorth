@@ -335,7 +335,7 @@ function SettingsPage({ onBack, cb }: { onBack: () => void; cb: WebCallbacks }) 
             <div className="flex items-center gap-2">
               <Plug size={16} className="text-info" />
               <div>
-                <div className="text-[14px]">BeProgram AI</div>
+                <div className="text-[14px]">CodeProof AI</div>
                 <div className="text-[12px] text-secondary">Managed evaluation · code review scope</div>
               </div>
             </div>

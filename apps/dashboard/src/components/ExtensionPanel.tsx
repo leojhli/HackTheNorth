@@ -52,7 +52,7 @@ export function ExtensionPanel({ s, a }: { s: ExtensionState; a: ExtActions }) {
   useEffect(()=>{if(fx.LEARNING_EXPLANATION && !fx.PRACTICE_ACTIVE) explanationRef.current?.scrollIntoView({block:'nearest'})},[fx.LEARNING_EXPLANATION,fx.PRACTICE_ACTIVE])
   return (
     <section
-      aria-label="BeProgram checkpoint panel"
+      aria-label="CodeProof checkpoint panel"
       className="@container flex h-full flex-col bg-panel text-primary"
     >
       <PanelHeader s={s} a={a} />
@@ -111,14 +111,14 @@ function StatusBar({ s }: { s: ExtensionState }) {
   const fx = useProduct()
   const label =
     s.phase === 'welcome' || s.phase === 'scope'
-      ? 'BeProgram: not started'
+      ? 'CodeProof: not started'
       : s.phase === 'disconnected'
-        ? 'BeProgram: reconnecting'
+        ? 'CodeProof: reconnecting'
         : s.gate === 'paused'
-          ? 'BeProgram: checkpoint required'
+          ? 'CodeProof: checkpoint required'
           : s.phase === 'analyzing'
-            ? 'BeProgram: reviewing changes'
-            : 'BeProgram: ready'
+            ? 'CodeProof: reviewing changes'
+            : 'CodeProof: ready'
   return (
     <div className="flex items-center justify-between border-t border-subtle bg-canvas px-5 py-1.5 text-[12px] text-secondary">
       <span className="flex items-center gap-1.5 font-mono">
@@ -141,7 +141,7 @@ function Welcome({ s, a }: { s: ExtensionState; a: ExtActions }) {
       <div className="space-y-2">
         <h1 className="text-[18px] font-semibold leading-[26px]">Understand what you build</h1>
         <p className="text-[14px] leading-[22px] text-secondary">
-          BeProgram adds a short comprehension checkpoint after meaningful AI-assisted changes, so you can
+          CodeProof adds a short comprehension checkpoint after meaningful AI-assisted changes, so you can
           keep coding with confidence in what the code does.
         </p>
       </div>
@@ -590,7 +590,7 @@ function Disconnected({ a }: { a: ExtActions }) {
         <h1 className="text-[18px] font-semibold leading-[26px]">Reconnect your coding assistant</h1>
       </div>
       <p className="text-[14px] leading-[22px] text-secondary">
-        BeProgram can’t confirm the connected AI workflow right now. Your checkpoint and draft are still
+        CodeProof can’t confirm the connected AI workflow right now. Your checkpoint and draft are still
         available.
       </p>
       <div className="grid gap-2 @[720px]:grid-cols-2">

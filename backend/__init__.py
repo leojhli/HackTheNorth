@@ -1,1 +1,1 @@
-"""BeProgram application."""
+"""CodeProof application."""

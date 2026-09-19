@@ -69,7 +69,7 @@ def memo_text(commitment):
 
 
 def verify_package(manifest, signature, rpc, trusted_issuers):
-    """Independent: uses supplied evidence + trusted RPC, never BeProgram database state."""
+    """Independent: uses supplied evidence + trusted RPC, never CodeProof database state."""
     base = {'network': 'Solana Devnet — demo network', 'revocation': 'Revocation not supported in this prototype',
             'subject_control_verified': False, 'subject_note': 'Possession of a package does not prove current wallet control.'}
     if manifest.get('schema') != 'beprogram.assessment.v1' or manifest.get('network') != 'devnet':
@@ -125,7 +125,7 @@ class ReceiptService:
             if cp.status not in PASSING:
                 raise AppError('not_passed', 'Only a persisted passing checkpoint is eligible.', 409)
             expires, challenge_id, nonce = int(time.time())+300, uid(), secrets.token_hex(24)
-            message = '\n'.join(['BeProgram assessment receipt', f'Domain: {self.config.app_origin}', f'Checkpoint: {cp.id}',
+            message = '\n'.join(['CodeProof assessment receipt', f'Domain: {self.config.app_origin}', f'Checkpoint: {cp.id}',
                 f'Subject: {data.subject}', f'Nonce: {nonce}', f'Expires: {expires}', 'This proves wallet control for this private receipt preview. No funds are requested.'])
             op = Operation(id=challenge_id, owner=owner, project_id=cp.project_id, kind='wallet_challenge', key=challenge_id,
                 state='fresh', payload={'checkpoint_id': cp.id, 'subject': data.subject, 'expires': expires, 'message': message})

@@ -239,7 +239,7 @@ export default function App() {
             <div className="mx-auto h-[calc(100vh-136px)] max-w-[1440px]">
               <VSCodeShell panel={panel} onAiRequest={a.triggerAiRequest} />
               <p className="mt-2 text-center font-mono text-[11px] text-secondary">
-                Host application — not part of BeProgram implementation
+                Host application — not part of CodeProof implementation
               </p>
             </div>
           )}
@@ -291,7 +291,7 @@ export default function App() {
           </div>
         )}
 
-        {/* E09 — Next AI request paused (BeProgram-owned modal, no IDE padlock) */}
+        {/* E09 — Next AI request paused (CodeProof-owned modal, no IDE padlock) */}
         {aiPaused && (
           <Overlay onClose={a.keepEditing}>
             <div className="flex items-center gap-2">

@@ -35,7 +35,7 @@ export default function SidebarApp(){
     return()=>{stop();observer.disconnect()}
   },[])
   const action=(name:string)=>{setLocalError('');void send(name).catch(e=>setLocalError(e.message))}
-  if(!state)return <main className="min-h-screen bg-canvas p-5 text-primary"><p role="status">Loading BeProgram…</p>{localError&&<InlineNotice kind="error">{localError}<Button variant="text" onClick={()=>action('ready')}>Reconnect</Button></InlineNotice>}</main>
+  if(!state)return <main className="min-h-screen bg-canvas p-5 text-primary"><p role="status">Loading CodeProof…</p>{localError&&<InlineNotice kind="error">{localError}<Button variant="text" onClick={()=>action('ready')}>Reconnect</Button></InlineNotice>}</main>
   const cp=state.checkpoint
   const stageAttempts=cp?.attempts.filter(a=>!cp.practice_started_version||a.version>=cp.practice_started_version)||[]
   const working=state.busy&&!['ready','refresh'].includes(state.operation||'')
@@ -69,10 +69,11 @@ export default function SidebarApp(){
   // Webview microphone permissions are not a verified capability. Optional voice
   // stays on the website; the complete text checkpoint is local to this sidebar.
   fx.VOICE_ENABLED=false
-  fx.ACCOUNT_CONNECT_HINT='Start BeProgram locally, then enter LOCAL_DEV_TOKEN from its .env in the VS Code prompt. This is a local password, not a paid API key. It stays in SecretStorage.'
+  fx.ACCOUNT_CONNECT_HINT='Start CodeProof locally, then enter LOCAL_DEV_TOKEN from its .env in the VS Code prompt. This is a local password, not a paid API key. It stays in SecretStorage.'
   return <ProductContext.Provider value={fx}><main className={(light?'light ':'dark ')+'flex min-h-screen flex-col bg-panel text-primary'}>
     <nav aria-label="Sidebar actions" className="flex flex-wrap items-center gap-3 border-b border-subtle px-4 py-2 text-[12px] text-secondary">
       <button disabled={state.busy} onClick={()=>action('refresh')}>Refresh</button>
+      {state.connected&&<button disabled={state.busy} onClick={()=>action('projects')}>Projects</button>}
       {state.session&&<button disabled={state.busy||!state.gate?.available} title={state.gate?.available?'Ask the local coding assistant':'Complete the checkpoint to unlock Managed Ask AI'} onClick={()=>action('ask')}>Managed Ask AI</button>}
       <button disabled={state.busy} onClick={()=>action('history')}>Learning history ↗</button>
       {state.connected&&<button disabled={state.busy} onClick={()=>action('disconnect')} className="ml-auto">Disconnect</button>}
@@ -83,6 +84,6 @@ export default function SidebarApp(){
     {working&&<p role="status" className="px-4 pt-3 text-[12px] text-secondary">{state.operation==='connect'?'Complete the VS Code connection prompts.':state.operation==='capture'?'Review and approve the saved source preview in VS Code.':'Working… your result is saved before the AI gate changes.'}</p>}
     {working&&elapsed>=10&&<p className="px-4 pt-2 text-[12px] leading-5 text-secondary">{elapsed}s elapsed. {elapsed>=30?'Local processing is taking longer than usual. You can keep editing; the checkpoint stays saved.':'The model runs on this computer. The first request can take longer to load.'}</p>}
     <fieldset disabled={working} className="m-0 flex min-w-0 flex-1 flex-col border-0 p-0"><ExtensionPanel s={s} a={actions}/></fieldset>
-    <p className="border-t border-subtle px-4 py-3 text-[11px] leading-[17px] text-secondary">Only BeProgram Managed Ask AI is gated. Manual edits and other assistants remain available. Capture covers approved saved Git changes; unsaved buffers are excluded.</p>
+    <p className="border-t border-subtle px-4 py-3 text-[11px] leading-[17px] text-secondary">Only CodeProof Managed Ask AI is gated. Manual edits and other assistants remain available. Capture covers approved saved Git changes; unsaved buffers are excluded.</p>
   </main></ProductContext.Provider>
 }

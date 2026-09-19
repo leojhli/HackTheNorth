@@ -106,7 +106,7 @@ export function VoiceAnswer({ onTranscript }: { onTranscript: (t: string) => voi
     return (
       <div className="space-y-2 rounded-[var(--radius-panel)] border border-subtle bg-canvas p-3">
         <p className="text-[13px] text-secondary">
-          BeProgram needs microphone access to record your spoken explanation. Audio is transcribed to
+          CodeProof needs microphone access to record your spoken explanation. Audio is transcribed to
           reviewable text; you submit the text.
         </p>
         <div className="flex gap-2">
@@ -464,7 +464,7 @@ export function PRImportDialog({ onClose, onImport }: { onClose: () => void; onI
       <div className="space-y-4">
         <Header id="G01" title="Import a pull request" onClose={onClose} />
         <p className="text-[13px] text-secondary">
-          Connect the authorized account and select one repository and PR. BeProgram does not scan all your
+          Connect the authorized account and select one repository and PR. CodeProof does not scan all your
           repositories.
         </p>
         <div className="space-y-2 rounded-[var(--radius-panel)] border border-subtle bg-canvas p-3 text-[13px]">

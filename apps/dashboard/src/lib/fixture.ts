@@ -6,7 +6,7 @@ export const LANGUAGE = 'TypeScript'
 export const SESSION_DATE = '18 September 2026'
 export const CURRENT_FILE = 'src/data/findUser.ts'
 export const CONCEPT = 'SQL parameterization'
-export const INTEGRATION_LABEL = 'BeProgram AI connected'
+export const INTEGRATION_LABEL = 'CodeProof AI connected'
 
 export const CAPTURED_CODE = `export async function findUser(email: string) {
   const result = await pool.query(
@@ -95,7 +95,7 @@ export const PROVIDER_DISCLOSURE =
  * Illustrative UI content only — not a claim of on-chain issuance.
  * ------------------------------------------------------------------ */
 export const RECEIPT_NETWORK = 'Solana Devnet · Demo network'
-export const RECEIPT_ISSUER = 'BeProgram (issuer.beprogram.dev)'
+export const RECEIPT_ISSUER = 'CodeProof (issuer.beprogram.dev)'
 export const DEMO_WALLET = '7xKq…9fR2'
 export const ASSISTANCE_LEVEL = 'Unaided explanation'
 
@@ -118,7 +118,7 @@ export const GITHUB_HEAD_SHA = 'a3f19c2'
 export const GITHUB_ACCOUNT = 'ada-reyes'
 
 // Exact comment previewed before publication (G02, section 6).
-export const PR_SUMMARY_COMMENT = `### BeProgram comprehension summary
+export const PR_SUMMARY_COMMENT = `### CodeProof comprehension summary
 
 Concepts demonstrated on this PR:
 - **SQL parameterization** — findUser now separates input from SQL instructions.

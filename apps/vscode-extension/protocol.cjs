@@ -1,4 +1,4 @@
-const SIMPLE = new Set(['ready','refresh','connect','capture','retry','ask','explain','practice','end','history','settings','receipt','disconnect']);
+const SIMPLE = new Set(['ready','refresh','connect','projects','capture','retry','ask','explain','practice','end','history','settings','receipt','disconnect']);
 function validateMessage(message) {
   if (!message || typeof message!=='object' || Array.isArray(message)) return false;
   if (Object.keys(message).some(k=>!['id','action','payload'].includes(k))) return false;

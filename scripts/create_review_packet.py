@@ -6,7 +6,7 @@ from pathlib import Path
 
 TEMPLATE = r'''<!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BeProgram human review</title>
+<title>CodeProof human review</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f7f8;color:#172c28;font:16px/1.6 system-ui,sans-serif}
 main{max-width:900px;margin:32px auto;padding:0 20px}h1{line-height:1.2}h2{font-size:20px}
@@ -19,9 +19,9 @@ blockquote{margin:12px 0;padding:12px 16px;border-left:3px solid #215a43;backgro
 label{display:block;margin:12px 0}select,input,textarea{font:inherit;padding:8px;border:1px solid #9aac9f;border-radius:6px;max-width:100%}textarea{width:100%;min-height:70px}details{margin:18px 0}summary{cursor:pointer;font-weight:650}.muted{color:#50655a;font-size:14px}
 </style>
 <header><strong id="progress">0 / 20 reviewed</strong><button id="export" type="button">Save review file</button><span id="saved" role="status"></span></header>
-<main><h1>Review BeProgram's assessments</h1>
+<main><h1>Review CodeProof's assessments</h1>
 <p>For each example, read the code and explanation. Choose your own verdict first, then open the model result and judge its feedback. You can choose <strong>Unsure</strong>; do not guess. Agent labels are comparison data, not an answer key.</p>
-<p>This page works offline, sends nothing, and never changes a BeProgram grade. Progress is saved in this browser when available. Use <strong>Save review file</strong> to export it into the project's <code>docs/release-review</code> folder. Partial exports remain labeled incomplete.</p>
+<p>This page works offline, sends nothing, and never changes a CodeProof grade. Progress is saved in this browser when available. Use <strong>Save review file</strong> to export it into the project's <code>docs/release-review</code> folder. Partial exports remain labeled incomplete.</p>
 <p id="provenance" class="muted"></p><label>Your name or initials <input id="reviewer" autocomplete="off"></label>
 <section id="cases"></section></main>
 <script id="data" type="application/json">__DATA__</script>

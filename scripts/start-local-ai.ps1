@@ -1,7 +1,7 @@
 param([int]$Port = 11435)
 $ErrorActionPreference = 'Stop'
 if ($Port -lt 1024 -or $Port -gt 65535) { throw 'Choose a local port between 1024 and 65535.' }
-$runtimeDir = Join-Path $env:LOCALAPPDATA 'BeProgram/ollama'
+$runtimeDir = Join-Path $env:LOCALAPPDATA 'CodeProof/ollama'
 $executable = Join-Path $runtimeDir 'ollama.exe'
 if (-not (Test-Path -LiteralPath $executable)) { throw 'Run ./scripts/setup-local-ai.ps1 first.' }
 $pidFile = Join-Path $runtimeDir "server-$Port.pid"
@@ -10,9 +10,9 @@ if ($listener) {
     $ownedId = if (Test-Path -LiteralPath $pidFile) { [int](Get-Content -LiteralPath $pidFile) } else { 0 }
     $existing = Get-Process -Id $ownedId -ErrorAction SilentlyContinue
     if (-not $existing -or $existing.Path -ne $executable -or $listener.OwningProcess -notcontains $ownedId) {
-        throw "Port $Port belongs to another process. BeProgram will not reuse an unverified Ollama server."
+        throw "Port $Port belongs to another process. CodeProof will not reuse an unverified Ollama server."
     }
-    Write-Output "BeProgram local AI is already running on 127.0.0.1:$Port."
+    Write-Output "CodeProof local AI is already running on 127.0.0.1:$Port."
     exit 0
 }
 $env:OLLAMA_HOST = "127.0.0.1:$Port"

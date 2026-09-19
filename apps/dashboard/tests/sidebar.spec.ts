@@ -13,7 +13,7 @@ const before='export async function findUser(db, email) {\n  return db.query('+S
 const after='export async function findUser(db, email) {\n  return db.query("SELECT * FROM users WHERE email = $1", [email]);\n}'
 
 test('sidebar UI: saved capture, draft restoration, follow-up, pass and next managed request',async({page,request,baseURL})=>{
-  const root=await mkdtemp(path.join(os.tmpdir(),'beprogram-sidebar-'))
+  const root=await mkdtemp(path.join(os.tmpdir(),'codeproof-sidebar-'))
   await mkdir(path.join(root,'src'));await writeFile(path.join(root,'src/findUser.ts'),before)
   const git=(...args:string[])=>execFileSync('git',['-C',root,...args],{windowsHide:true,stdio:'pipe'})
   git('init');git('add','.');git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-m','fixture')
@@ -23,7 +23,7 @@ test('sidebar UI: saved capture, draft restoration, follow-up, pass and next man
     if(session.status==='active')await request.post('/v1/sessions/'+session.id+'/end',{headers})
   const project=await (await request.post('/v1/projects',{headers,data:{name:'Sidebar fixture',scope:['src']}})).json()
   const session=await (await request.post('/v1/sessions',{headers,data:{project_id:project.id}})).json()
-  const memory=new Map<string,unknown>([['beprogram.session',{root,origin:baseURL,projectId:project.id,sessionId:session.id}]])
+  const memory=new Map<string,unknown>([['codeproof.session',{root,origin:baseURL,projectId:project.id,sessionId:session.id}]])
   const documents:{content:string}[]=[];let openedBrowser=false
   const vscode={workspace:{isTrusted:true,workspaceFolders:[{uri:{fsPath:root,scheme:'file'}}],getConfiguration:()=>({get:()=> baseURL}),
     openTextDocument:async(doc:{content:string})=>{documents.push(doc);return doc}},

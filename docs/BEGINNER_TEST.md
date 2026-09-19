@@ -1,10 +1,10 @@
 # Beginner usability check
 
-This checks whether BeProgram is understandable and usable. You do not need to certify its coding advice or grading accuracy. If an explanation seems confusing or wrong, record that and stop rather than guessing your way to a pass.
+This checks whether CodeProof is understandable and usable. You do not need to certify its coding advice or grading accuracy. If an explanation seems confusing or wrong, record that and stop rather than guessing your way to a pass.
 
 ## Start with a fresh example
 
-In the BeProgram workspace terminal:
+In the CodeProof workspace terminal:
 
 ```powershell
 ./scripts/run-local.ps1
@@ -16,7 +16,7 @@ In another terminal:
 .venv/Scripts/python.exe -m scripts.prepare_demo --check --open
 ```
 
-The command checks readiness and opens a fresh demo in VS Code. If automatic opening is unavailable, open the printed folder manually. Each run creates a separate project and preserves existing history. Open BeProgram, connect, and choose scope `src`. Your saved token should be reused. If a password prompt appears, use the private local token as described in the README; never include it in screenshots or feedback. Keep `.env` closed while sharing your screen.
+The command checks readiness and opens a fresh demo in VS Code. If automatic opening is unavailable, open the printed folder manually. Each run creates a separate project and preserves existing history. Open CodeProof, connect, and choose scope `src`. Your saved token should be reused. If a password prompt appears, use the private local token as described in the README; never include it in screenshots or feedback. Keep `.env` closed while sharing your screen.
 
 ## Try the learning flow
 

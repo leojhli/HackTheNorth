@@ -44,7 +44,7 @@ def test_optin_emits_correlated_nested_trace_logs_without_private_metadata():
         transactions = [i.payload.json for i in items if i.type == 'transaction']
         assert len(transactions) == 1
         assert transactions[0]['transaction'] == 'managed_ask'
-        assert any(s['op'] == 'beprogram.local_inference' for s in transactions[0]['spans'])
+        assert any(s['op'] == 'codeproof.local_inference' for s in transactions[0]['spans'])
         assert any(i.type == 'log' for i in items)
         assert 'local_model_timeout' in wire
         assert 'request' not in transactions[0] and 'server_name' not in transactions[0]

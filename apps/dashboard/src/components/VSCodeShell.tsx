@@ -1,5 +1,5 @@
 // Presentation context only — the host IDE. Labeled "Host application — not
-// part of BeProgram implementation" (section 5). Developers build the panel,
+// part of CodeProof implementation" (section 5). Developers build the panel,
 // not the editor.
 import type { ReactNode } from 'react'
 import { File, Search, Settings, Sparkle } from '../lib/icons'
@@ -90,14 +90,14 @@ export function VSCodeShell({ panel, onAiRequest }: { panel: ReactNode; onAiRequ
               </div>
             </div>
           </div>
-          {/* Status bar — inherits host character; reads BeProgram state. */}
+          {/* Status bar — inherits host character; reads CodeProof state. */}
           <div className="flex h-6 shrink-0 items-center gap-3 border-t border-subtle bg-action px-3 text-[11px] font-medium text-on-action">
             <span>main*</span>
             <span className="ml-auto font-mono">TypeScript</span>
           </div>
         </div>
 
-        {/* Docked BeProgram panel */}
+        {/* Docked CodeProof panel */}
         <div className="hidden w-[420px] shrink-0 border-l border-subtle xl:block">{panel}</div>
       </div>
     </div>

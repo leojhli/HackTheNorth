@@ -3,7 +3,7 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------ *
- * BeProgram design tokens (section 4 of the handoff).
+ * CodeProof design tokens (section 4 of the handoff).
  * Dark-first: :root holds dark values, .light overrides them.
  * ------------------------------------------------------------------ */
 :root {

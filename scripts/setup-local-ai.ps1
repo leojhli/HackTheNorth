@@ -1,6 +1,6 @@
 param([ValidateSet('qwen2.5-coder:7b','qwen2.5-coder:3b')][string]$Model = 'qwen2.5-coder:7b')
 $ErrorActionPreference = 'Stop'
-$runtimeDir = Join-Path $env:LOCALAPPDATA 'BeProgram/ollama'
+$runtimeDir = Join-Path $env:LOCALAPPDATA 'CodeProof/ollama'
 New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
 $archive = Join-Path $runtimeDir 'ollama-windows-amd64.zip'
 $executable = Join-Path $runtimeDir 'ollama.exe'
@@ -23,4 +23,4 @@ $env:OLLAMA_NO_CLOUD = '1'
 Write-Output "Downloading local $Model weights (7B: about 4.7 GB; 3B: about 1.9 GB). No inference credits are used."
 & $executable pull $Model
 if ($LASTEXITCODE -ne 0) { throw 'Model download failed. Rerun this script to resume.' }
-Write-Output "Ready. Set OLLAMA_MODEL=$Model in .env. Start BeProgram with ./scripts/run-local.ps1."
+Write-Output "Ready. Set OLLAMA_MODEL=$Model in .env. Start CodeProof with ./scripts/run-local.ps1."

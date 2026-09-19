@@ -138,7 +138,7 @@ export const Moon = (p: IconProps) => (
   </svg>
 )
 
-// BeProgram identity: a bracket-and-check mark (section 3).
+// CodeProof identity: a bracket-and-check mark (section 3).
 export const BracketCheck = ({ size = 20, ...p }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...p}>
     <path

@@ -25,7 +25,7 @@ def create_app(config=None, database=None, assessor=None):
     service = CheckpointService(database, assessor or LocalAssessor(config), config)
     auth = Auth(config)
     observability.configure(config)
-    app = FastAPI(title='BeProgram', version='0.1.0')
+    app = FastAPI(title='CodeProof', version='0.1.0')
     app.state.service, app.state.auth, app.state.config = service, auth, config
     app.add_middleware(CORSMiddleware, allow_origins=config.allowed_origins.split(','), allow_credentials=False,
         allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Authorization', 'Content-Type'])
@@ -83,7 +83,7 @@ def create_app(config=None, database=None, assessor=None):
                     'voice': False,
                     'receipts': bool(config.solana_enabled and config.solana_issuer_key),
                     'github': False},
-                'integration': 'beprogram_managed', 'provenance_note': 'A diff does not establish AI authorship.'}
+                'integration': 'codeproof_managed', 'provenance_note': 'A diff does not establish AI authorship.'}
 
     @app.get('/v1/projects')
     def projects(owner=Depends(auth)):

@@ -84,7 +84,7 @@ export type IntegrationKind = 'native' | 'managed' | 'simulated'
 export function IntegrationMode({ kind }: { kind: IntegrationKind }) {
   const meta = {
     native: { label: 'Claude Code connected', color: 'var(--status-success)' },
-    managed: { label: 'BeProgram AI connected', color: 'var(--status-info)' },
+    managed: { label: 'CodeProof AI connected', color: 'var(--status-info)' },
     simulated: { label: 'Demo — external AI lock simulated', color: 'var(--status-attention)' },
   }[kind]
   return (
@@ -214,7 +214,7 @@ export function Wordmark({ size = 'md' }: { size?: 'sm' | 'md' }) {
     <span className="inline-flex items-center gap-2 text-primary">
       <BracketCheck size={size === 'sm' ? 18 : 22} />
       <span className={`font-semibold tracking-tight ${size === 'sm' ? 'text-[14px]' : 'text-[16px]'}`}>
-        BeProgram
+        CodeProof
       </span>
     </span>
   )
@@ -261,7 +261,7 @@ export function Modal({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="BeProgram dialog"
+        aria-label="CodeProof dialog"
         onClick={(e) => e.stopPropagation()}
         className={`bp-enter bp-scroll max-h-[90vh] w-full overflow-y-auto rounded-[var(--radius-dialog)] border border-subtle bg-panel p-5 shadow-2xl ${
           wide ? 'max-w-[560px]' : 'max-w-[440px]'

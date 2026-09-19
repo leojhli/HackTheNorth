@@ -116,7 +116,7 @@ class CheckpointService:
             available = session.status == 'active' and not pending and not busy
             return {'available': available, 'checkpoint_id': pending.id if pending else None,
                     'reason': 'checkpoint_unresolved' if pending else 'session_ended' if session.status != 'active' else 'operation_in_progress' if busy else 'ready',
-                    'integration': 'beprogram_managed', 'external_assistants_controlled': False,
+                    'integration': 'codeproof_managed', 'external_assistants_controlled': False,
                     'scope': 'Only submitted saved changes; other coding assistants and unsubmitted edits are outside this gate.'}
 
     def checkpoint(self, owner, id):
@@ -435,7 +435,7 @@ class CheckpointService:
             text = self.assessor.ask(data.prompt, {'source': 'approved_saved_after_excerpts', 'files': context_files, 'partial': context['partial']})
             if not isinstance(text, str) or not text.strip() or len(text) > 24000:
                 raise AppError('invalid_assistant_response', 'The local assistant returned an invalid response. Retry your saved request.', 503, True)
-            result = {'text': text, 'context': context, 'integration': 'beprogram_managed', 'files_modified': False}
+            result = {'text': text, 'context': context, 'integration': 'codeproof_managed', 'files_modified': False}
             with self.database.transaction() as db:
                 self.verify_lease(db, owner, lease)
                 op = owned(db, Operation, op_id, owner)

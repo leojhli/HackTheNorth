@@ -7,7 +7,7 @@ const path=require('node:path');
 const draft={checkpointId:'checkpoint-1',version:1,snapshotHash:'a'.repeat(64),text:'My explanation'};
 const cp={id:draft.checkpointId,version:1,snapshot_hash:draft.snapshotHash,status:'pending',attempts:[],question:{decision:'assess'}};
 function fixture(){
-  const secret=new Map([['beprogram.token:http://127.0.0.1:8000','private-test-token']]);
+  const secret=new Map([['codeproof.token:http://127.0.0.1:8000','private-test-token']]);
   const memory=new Map();
   const emitted=[];
   const vscode={workspace:{isTrusted:true,workspaceFolders:[{uri:{fsPath:'C:\\repo'}}],getConfiguration:()=>({get:()=> 'http://127.0.0.1:8000'})},window:{},env:{},Uri:{}};
@@ -29,11 +29,11 @@ test('expired stored token prompts once; an outage does not erase the token',asy
   controller.request=async()=>{if(++calls===1)throw Object.assign(Error('Expired'),{code:'unauthorized'});return [];};
   assert.deepEqual(await controller.connectionProjects(),[]);
   assert.equal(prompts,1);
-  assert.equal(await context.secrets.get('beprogram.token:http://127.0.0.1:8000'),'replacement-token');
+  assert.equal(await context.secrets.get('codeproof.token:http://127.0.0.1:8000'),'replacement-token');
   controller.request=async()=>{throw Error('Unavailable');};
   await assert.rejects(controller.connectionProjects(),/Unavailable/);
   assert.equal(prompts,1);
-  assert.equal(await context.secrets.get('beprogram.token:http://127.0.0.1:8000'),'replacement-token');
+  assert.equal(await context.secrets.get('codeproof.token:http://127.0.0.1:8000'),'replacement-token');
 });
 test('message boundary denies arbitrary URLs, commands, pass assertions and stale-shaped answers',()=>{
   assert(validateMessage({id:'a',action:'answer',payload:draft}));
@@ -114,4 +114,54 @@ test('managed context conflict clears the request key so retry can use current s
   controller.request=async()=>{throw Object.assign(Error('Scope changed'),{code:'ask_context_changed'});};
   await assert.rejects(controller.ask(),/Scope changed/);
   assert.equal(controller.askIntent,null);
+});
+
+test('project deletion confirms exact saved counts, preserves source, and clears an active project',async()=>{
+  const {controller,vscode,context}=fixture();
+  const project={id:'project-1',name:'Beginner demo',scope:['canEnter.js']};
+  controller.active={root:'C:\\repo',origin:'http://127.0.0.1:8000',projectId:project.id,sessionId:'session-1'};
+  controller.state.connected=true;controller.state.project=project;controller.state.session={id:'session-1',project_id:project.id,status:'active'};
+  const picks=[{remove:true},{project},undefined];
+  vscode.window.showQuickPick=async()=>picks.shift();
+  let confirmation;
+  vscode.window.showWarningMessage=async(message,options)=>{confirmation={message,options};return 'Delete project';};
+  const calls=[];let listed=0;
+  controller.request=async(route,method='GET')=>{
+    calls.push({route,method});
+    if(route==='/v1/projects')return ++listed===1?[project]:[];
+    if(route==='/v1/sessions')return [{id:'session-1',project_id:project.id},{id:'session-2',project_id:project.id}];
+    if(route==='/v1/history')return [{id:'checkpoint-1',project_id:project.id,attempts:[{},{}]}];
+    if(route==='/v1/projects/project-1'&&method==='DELETE')return {deleted:true};
+    throw Error('Unexpected request '+method+' '+route);
+  };
+  await controller.projects();
+  assert.match(confirmation.message,/Delete Beginner demo/);
+  assert.match(confirmation.options.detail,/2 saved session\(s\), 1 learning-history checkpoint\(s\), and 2 submitted answer\(s\)/);
+  assert.match(confirmation.options.detail,/source folder C:\\repo will not be deleted or changed/);
+  assert(calls.some(call=>call.route==='/v1/projects/project-1'&&call.method==='DELETE'));
+  assert.equal(controller.active,null);assert.equal(controller.state.project,null);assert.equal(controller.state.connected,true);
+  assert.equal(context.workspaceState.get('codeproof.session'),null);
+});
+
+test('project switch ends only the active session and keeps saved history',async()=>{
+  const {controller,vscode}=fixture();
+  const current={id:'project-1',name:'Old demo',scope:['src']};
+  const next={id:'project-2',name:'Beginner demo',scope:['canEnter.js']};
+  controller.active={root:'C:\\repo',origin:'http://127.0.0.1:8000',projectId:current.id,sessionId:'session-1'};
+  vscode.window.showQuickPick=async items=>items.find(item=>item.project?.id===next.id);
+  vscode.window.showWarningMessage=async()=> 'Switch project';
+  const calls=[];
+  controller.request=async(route,method='GET',body)=>{
+    calls.push({route,method,body});
+    if(route==='/v1/projects')return [current,next];
+    if(route==='/v1/sessions/session-1/end')return {status:'ended'};
+    if(route==='/v1/sessions'&&method==='POST')return {id:'session-2',project_id:next.id,status:'active'};
+    throw Error('Unexpected request '+method+' '+route);
+  };
+  controller.refresh=async()=>{};
+  await controller.projects();
+  assert.deepEqual(calls.slice(-2).map(call=>[call.route,call.method]),[['/v1/sessions/session-1/end','POST'],['/v1/sessions','POST']]);
+  assert.equal(controller.active.projectId,next.id);assert.equal(controller.active.sessionId,'session-2');
+  assert.match(controller.state.notice,/Saved history for other projects is unchanged/);
+  assert(validateMessage({id:'projects-1',action:'projects'}));
 });

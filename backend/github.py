@@ -53,7 +53,7 @@ class ComposioGitHub:
         accounts = [c for c in result.get('items', []) if c.get('user_id') == owner and c.get('toolkit', {}).get('slug') == 'github'
                     and c.get('auth_config', {}).get('id') == self.config.composio_github_auth_config_id and c.get('status') == 'ACTIVE' and not c.get('is_disabled')]
         if len(accounts) != 1:
-            raise AppError('github_connection_required', 'Connect exactly one GitHub account for this BeProgram user and auth configuration.', 409)
+            raise AppError('github_connection_required', 'Connect exactly one GitHub account for this CodeProof user and auth configuration.', 409)
         return accounts[0]['id']
 
     def proxy(self, owner, endpoint, method='GET', body=None):
@@ -154,7 +154,7 @@ class GitHubService:
                 return self.public(existing)
             def clean(value):
                 return re.sub(r'[^\w .()/\-]', '', value)[:120]
-            body = '### BeProgram comprehension summary\n\nReviewed commit: `' + ref['head'] + '`\n\nConcepts demonstrated on selected captured changes:\n'
+            body = '### CodeProof comprehension summary\n\nReviewed commit: `' + ref['head'] + '`\n\nConcepts demonstrated on selected captured changes:\n'
             body += '\n'.join('- ' + clean(c.question['concept']) for c in checkpoints)
             body += f'\n\nCoverage: {len(checkpoints)} selected checkpoint(s), bounded excerpts only. This does not cover the entire PR or prove authorship or general mastery. Private answers, retries and source excerpts are excluded.'
             marker = '<!-- beprogram-publication:'+key+' -->'

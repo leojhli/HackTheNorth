@@ -47,7 +47,7 @@ def main(send, output):
             transactions=[item.payload.json for item in items if item.type=='transaction']
             logs=[item for item in items if item.type=='log']
             assert transactions and logs
-            assert any(s['op']=='beprogram.local_inference' for t in transactions for s in t['spans'])
+            assert any(s['op']=='codeproof.local_inference' for t in transactions for s in t['spans'])
             report.update(sdk_products_verified=['Tracing','Logs'],transactions=len(transactions),log_envelopes=len(logs),
                 nested_inference_verified=True,private_payload_absent=True)
         else:

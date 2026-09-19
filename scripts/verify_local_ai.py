@@ -41,7 +41,7 @@ CASES = [
 def main(demo=False, model=None, output=None):
     selected = CASES if not demo else [DEMO_CASE]
     report = {'provider': 'local Ollama, actual inference', 'cases': [], 'requests': []}
-    with tempfile.TemporaryDirectory(prefix='beprogram-local-live-') as directory:
+    with tempfile.TemporaryDirectory(prefix='codeproof-local-live-') as directory:
         config = Settings(database_url='sqlite:///' + str(Path(directory) / 'smoke.db'),
                           environment='test', auth_mode='local', local_dev_token='isolated-live-check-not-a-user-token-123',
                           **({'ollama_model': model} if model else {}))

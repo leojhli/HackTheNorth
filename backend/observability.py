@@ -12,7 +12,7 @@ from contextlib import contextmanager
 import sentry_sdk
 from sentry_sdk import logger as sentry_logger
 
-local_logger = logging.getLogger('beprogram.lifecycle')
+local_logger = logging.getLogger('codeproof.lifecycle')
 local_logger.propagate = False
 local_logger.setLevel(logging.INFO)
 OPERATIONS = {'change_filter_and_question', 'answer_evaluation_and_persistence', 'gate_reconciliation',
@@ -60,7 +60,7 @@ def safe_tags(values):
 def safe_trace(values):
     result = {k: v for k, v in values.items() if k in ('trace_id', 'span_id', 'parent_span_id')
               and isinstance(v, str) and re.fullmatch(r'[0-9a-f]{16}|[0-9a-f]{32}', v)}
-    result['op'] = values.get('op') if values.get('op') in {'beprogram.' + op for op in OPERATIONS} else 'beprogram.other'
+    result['op'] = values.get('op') if values.get('op') in {'codeproof.' + op for op in OPERATIONS} else 'codeproof.other'
     if values.get('status') in {'ok', 'internal_error', 'unknown_error'}:
         result['status'] = values['status']
     return result
@@ -68,7 +68,7 @@ def safe_trace(values):
 
 def scrub_event(event, hint=None):
     return {'event_id': event.get('event_id'), 'timestamp': event.get('timestamp'), 'level': 'error',
-            'message': 'BeProgram operational failure', 'tags': safe_tags(event.get('tags', {})),
+            'message': 'CodeProof operational failure', 'tags': safe_tags(event.get('tags', {})),
             'contexts': {'trace': safe_trace(event.get('contexts', {}).get('trace', {}))}}
 
 
@@ -85,7 +85,7 @@ def scrub_transaction(event, hint=None):
 
 
 def scrub_log(log, hint=None):
-    log['body'] = 'BeProgram lifecycle'
+    log['body'] = 'CodeProof lifecycle'
     attributes = log.get('attributes', {})
     duration = attributes.get('duration_ms', 0)
     log['attributes'] = {**safe_tags(attributes),
@@ -101,7 +101,7 @@ def configure(config, transport=None):
         send_default_pii=False, max_breadcrumbs=0, include_local_variables=False,
         enable_logs=config.sentry_enabled, traces_sample_rate=1.0 if config.sentry_enabled else 0.0,
         before_send=scrub_event, before_send_transaction=scrub_transaction, before_send_log=scrub_log,
-        server_name='beprogram-local', environment='local', release='beprogram-backend-track-preview',
+        server_name='codeproof-local', environment='local', release='codeproof-backend-track-preview',
         send_client_reports=False)
     for handler in list(local_logger.handlers):
         local_logger.removeHandler(handler)
@@ -127,7 +127,7 @@ def stage(operation, correlation_id=None):
     start, status, category = time.monotonic(), 'ok', 'none'
     # Nested inference appears inside the parent operation's trace, rather than
     # becoming an unrelated transaction. This makes slow model calls diagnosable.
-    with sentry_sdk.new_scope() as lifecycle_scope, (sentry_sdk.start_span(op='beprogram.' + operation) if parent else sentry_sdk.start_transaction(op='beprogram.' + operation, name=operation)) as transaction:
+    with sentry_sdk.new_scope() as lifecycle_scope, (sentry_sdk.start_span(op='codeproof.' + operation) if parent else sentry_sdk.start_transaction(op='codeproof.' + operation, name=operation)) as transaction:
         lifecycle_scope.set_tag('correlation_id', correlation_id)
         lifecycle_scope.set_tag('operation', operation)
         transaction.set_tag('correlation_id', correlation_id)
@@ -143,13 +143,13 @@ def stage(operation, correlation_id=None):
             with sentry_sdk.new_scope() as scope:
                 scope.set_tag('operation', operation)
                 scope.set_tag('category', category)
-                sentry_sdk.capture_message('BeProgram operational failure', level='error')
+                sentry_sdk.capture_message('CodeProof operational failure', level='error')
             raise
         finally:
             active_correlation.reset(token)
             local_event(operation, correlation_id, status, int((time.monotonic()-start)*1000), category)
             try:
-                sentry_logger.info('BeProgram lifecycle', attributes={'operation': operation, 'status': status,
+                sentry_logger.info('CodeProof lifecycle', attributes={'operation': operation, 'status': status,
                     'duration_ms': int((time.monotonic()-start)*1000), 'correlation_id': correlation_id, 'category': category})
             except Exception:
                 pass  # Telemetry must never turn a persisted result into an API failure.

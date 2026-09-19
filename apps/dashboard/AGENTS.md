@@ -1,6 +1,6 @@
 # figma-make-app
 
-React + Vite + Tailwind CSS project exported from Figma Make and connected to the BeProgram API in this checkout.
+React + Vite + Tailwind CSS project exported from Figma Make and connected to the CodeProof API in this checkout.
 
 ## Development Server
 

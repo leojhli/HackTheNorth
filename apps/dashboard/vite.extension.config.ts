@@ -14,7 +14,7 @@ export default defineConfig({
   ],
   build:{
     outDir:'../vscode-extension/media',emptyOutDir:true,cssCodeSplit:false,
-    lib:{entry:path.resolve(import.meta.dirname,'src/sidebar/main.tsx'),name:'BeProgramSidebar',formats:['iife'],fileName:()=> 'webview.js',cssFileName:'webview'},
+    lib:{entry:path.resolve(import.meta.dirname,'src/sidebar/main.tsx'),name:'CodeProofSidebar',formats:['iife'],fileName:()=> 'webview.js',cssFileName:'webview'},
     sourcemap:false
   }
 })

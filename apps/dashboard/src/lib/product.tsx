@@ -20,7 +20,7 @@ export function productData(project: Project | null, session: Session | null, cp
     DEMONSTRATED_CONCEPTS: [...new Set(history.filter(passed).map(c => c.question?.concept || 'Understanding'))],
     INCLUDED_FILES: project?.scope || [], EXCLUDED_FILES: [{ path: '.env / secrets', reason: 'Always excluded' }, { path: 'node_modules / generated output', reason: 'Always excluded' }, ...(project?.exclusions || []).map(path => ({path, reason: 'Excluded by you'}))],
     PROVIDER_DISCLOSURE: 'Approved saved code and reviewed explanations are assessed by a model on this computer. No AI API credits or subscriptions are used. History stays in the local database; raw context expires when the retention job runs.',
-    INTEGRATION_LABEL: 'BeProgram managed AI', SESSION_STARTED: session?.created || 0,
+    INTEGRATION_LABEL: 'CodeProof managed AI', SESSION_STARTED: session?.created || 0,
     ACCOUNT_CONNECT_HINT: 'Connect your account to keep your learning history private.',
     VOICE_ENABLED: !!config?.capabilities.voice, RECEIPTS_ENABLED: !!config?.capabilities.receipts,
     CHECKPOINT_ID: cp?.id || '', PARTIAL: !!cp?.snapshot.partial, PROVENANCE: cp?.snapshot.provenance || 'unknown',

@@ -86,7 +86,7 @@ def main():
         gate.raise_for_status()
         if args.ask:
             if not gate.json()['available']:
-                raise SystemExit('Checkpoint unresolved. Open BeProgram to explain the change before managed Ask AI.')
+                raise SystemExit('Checkpoint unresolved. Open CodeProof to explain the change before managed Ask AI.')
             result = client.post(f'/v1/sessions/{args.session}/ask', json={'prompt': args.ask, 'idempotency_key': str(uuid.uuid4())})
             result.raise_for_status()
             print(result.json()['text'])

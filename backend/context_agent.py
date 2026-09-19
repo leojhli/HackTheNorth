@@ -1,4 +1,4 @@
-﻿"""Local model selects a module; a bounded tool follows approved static imports.
+"""Local model selects a module; a bounded tool follows approved static imports.
 
 Conservative JS/TS import heuristic, not a complete parser. No filesystem/network tools.
 """
@@ -57,7 +57,7 @@ class ContextAgent:
 
         def need_context(reason):
             return {'text':'I need more approved saved context before I can answer reliably: ' + reason
-                + '. Review and approve the relevant code in BeProgram, or clarify your request. No unapproved files were read.',
+                + '. Review and approve the relevant code in CodeProof, or clarify your request. No unapproved files were read.',
                 'steps':steps, 'outcome':'needs_context', 'read_paths':list(selected)}
 
         choices = ['need_context', *['inspect_module:' + p for p in files]]

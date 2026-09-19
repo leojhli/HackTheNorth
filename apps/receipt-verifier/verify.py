@@ -1,4 +1,4 @@
-"""Independent CLI verifier. No BeProgram login, database or history API required.
+"""Independent CLI verifier. No CodeProof login, database or history API required.
 
 From repository root: python apps/receipt-verifier/verify.py package.json --trusted-issuer PUBLIC_KEY
 """

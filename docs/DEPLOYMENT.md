@@ -10,7 +10,7 @@ The supported zero-subscription delivery runs on your own computer: one FastAPI 
 4. Back up `beprogram.db` while the app is stopped, or use SQLite's online backup API. Do not copy only the DB while ignoring an active WAL. Protect backups because they contain approved source and explanations.
 5. Schedule `python -m backend.retention` locally if using the documented 30-day source-context expiry. It is not automatically scheduled. Project deletion removes its local records; it cannot remove exported files or optional public receipts.
 
-Model weights/runtime are in `%LOCALAPPDATA%/BeProgram/ollama`. The model download needs internet; core inference and persistence work locally afterward. Optional Devnet verification and package installation still require internet. Ollama startup logs are in that runtime directory; do not enable source-payload debug logging.
+Model weights/runtime are in `%LOCALAPPDATA%/CodeProof/ollama`. The model download needs internet; core inference and persistence work locally afterward. Optional Devnet verification and package installation still require internet. Ollama startup logs are in that runtime directory; do not enable source-payload debug logging.
 
 Local auth checks that the caller is loopback. Keep both service ports private: do not expose this token-based development setup through a tunnel or public reverse proxy. The existing production checks still require proper JWT authentication and PostgreSQL. This change does not weaken those checks to pretend local auth is a multiuser deployment.
 
@@ -26,4 +26,4 @@ Before any future hosted release, explicitly design authentication, persistent s
 - Native JSON-schema outputs: https://docs.ollama.com/capabilities/structured-outputs
 - Model/download size and license information: https://ollama.com/library/qwen2.5-coder:7b
 
-These confirm runtime capabilities, not the accuracy of BeProgram's assessments. The live model results and remaining human review belong in `docs/VERIFICATION.md`.
+These confirm runtime capabilities, not the accuracy of CodeProof's assessments. Independent review of model correctness remains incomplete.

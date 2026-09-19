@@ -13,17 +13,17 @@ if ($listener) {
     }
     if ((-not $workspaceProcess) -or
         ($running.CommandLine -notmatch [regex]::Escape('-m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log'))) {
-        throw 'Port 8000 belongs to another process. BeProgram did not stop it. Close that process or choose another port before starting.'
+        throw 'Port 8000 belongs to another process. CodeProof did not stop it. Close that process or choose another port before starting.'
     }
     if ($Restart) {
         Stop-Process -Id $listener.OwningProcess
     } else {
         & (Join-Path $PSScriptRoot 'start-local-ai.ps1')
-        Write-Output 'BeProgram is already running at http://127.0.0.1:8000. No second backend was started.'
+        Write-Output 'CodeProof is already running at http://127.0.0.1:8000. No second backend was started.'
         & $python -m scripts.doctor
         exit $LASTEXITCODE
     }
 }
 & (Join-Path $PSScriptRoot 'start-local-ai.ps1')
-if ($LASTEXITCODE -ne 0) { throw 'Start local AI before running BeProgram.' }
+if ($LASTEXITCODE -ne 0) { throw 'Start local AI before running CodeProof.' }
 & $python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log
