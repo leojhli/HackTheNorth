@@ -4,6 +4,8 @@ The story: BeProgram asks a developer to explain a meaningful saved code change,
 
 ## Before presenting
 
+For nontechnical testing, use [the beginner usability checklist](BEGINNER_TEST.md). The technical review worksheet below is for a reviewer who can assess the code; it is not a requirement that a beginner certify model correctness.
+
 1. Start the app with `./scripts/run-local.ps1` if it is not already running. Check http://127.0.0.1:8000/v1/config: local model available, receipts/voice/GitHub disabled. Start the app/model well before the demo to avoid cold-load delays.
 2. Install `artifacts/beprogram-companion.vsix` in VS Code if needed. Do not enter an OpenAI key; connect with the local app token from `.env` in the native VS Code password prompt. Keep `.env` closed while screen sharing.
 3. Run the command below to create an isolated Git folder. Each run makes a new folder and never resets your real repository:

@@ -35,4 +35,10 @@ Current managed-response samples are preserved in [initial errors](release-revie
 
 ## Next priorities
 
+Latest hardening fixed source-expiry races during question generation, retry and grading. Final verification now has 89 backend tests, four browser scenarios and six packaged-host groups passing. The installed extension remains 0.4.3; the backend update is active.
+
+The new 24-case practice benchmark has executable synthetic reference outputs, but its explanation labels are still agent-authored. The retained baseline has zero application-level false passes and two rejected ungrounded model passes. A candidate prompt introduced two false passes and was reverted. Three fresh core flows pass state assertions while still exposing wrong rubric/suggestion content. See [latest verification](VERIFICATION.md) for preserved reports; this is not independent quality acceptance.
+
+The user can use [the beginner checklist](BEGINNER_TEST.md) to report clarity, waiting time and recovery without taking responsibility for technical review.
+
 Keep optional integrations deferred. Focus next on independently reviewable assessment/suggestion examples, preserving failure evidence, and beginner feedback on practice/recovery. Broader model reliability is unresolved; adding source context fixes an information gap but does not establish correctness. The user should not be asked to certify code they cannot confidently assess.

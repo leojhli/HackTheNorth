@@ -274,6 +274,8 @@ class CheckpointService:
                 with self.database.transaction() as db:
                     self.verify_lease(db, owner, lease)
                     cp = owned(db, Checkpoint, cp_id, owner)
+                    if not cp.snapshot.get('files'):
+                        raise AppError('context_expired', 'The saved source expired while generating the question. No question was saved.', 409)
                     cp.question = question.model_dump()
                     cp.status = {'assess': 'pending', 'skip': 'skipped', 'unable_to_assess': 'unavailable'}[question.decision]
                     cp.last_error = 'context_insufficient' if cp.status == 'unavailable' else None
@@ -304,11 +306,16 @@ class CheckpointService:
             with self.database.transaction() as db:
                 self.verify_lease(db, owner, lease)
                 cp = owned(db, Checkpoint, id, owner)
-                cp.question = q.model_dump()
-                cp.model = getattr(self.assessor, 'model_id', 'test-only-fixture')
-                cp.status = {'assess': 'pending', 'skip': 'skipped', 'unable_to_assess': 'unavailable'}[q.decision]
-                cp.last_error = None
-                return self.detail(db, cp)
+                if not cp.snapshot.get('files'):
+                    cp.status, cp.last_error = 'unavailable', 'context_expired'
+                else:
+                    cp.question = q.model_dump()
+                    cp.model = getattr(self.assessor, 'model_id', 'test-only-fixture')
+                    cp.status = {'assess': 'pending', 'skip': 'skipped', 'unable_to_assess': 'unavailable'}[q.decision]
+                    cp.last_error = None
+                    return self.detail(db, cp)
+            # Commit the unavailable state before returning the typed conflict.
+            raise AppError('context_expired', 'The saved source expired while generating the question. No question was saved.', 409)
 
     def answer(self, owner, id, data):
         with self.serial(owner) as lease:
@@ -360,14 +367,21 @@ class CheckpointService:
                 cp, attempt = owned(db, Checkpoint, id, owner), owned(db, Attempt, attempt_id, owner)
                 if cp.version != data.version or cp.snapshot_hash != data.snapshot_hash:
                     raise AppError('stale_version', 'A newer result exists. Refresh this checkpoint.', 409)
-                attempt.state, attempt.evaluation = 'completed', {**result.model_dump(), 'model': getattr(self.assessor, 'model_id', 'test-only-fixture')}
-                cp.status = {'pass': 'passed_with_help' if practice else 'passed', 'follow_up': 'needs_followup', 'unable_to_assess': 'unavailable'}[result.decision]
-                cp.version += 1
-                cp.last_error = None
-                if result.decision == 'pass':
-                    cp.passed_at = time.time()
-                db.flush()
-                return self.detail(db, cp)
+                if not cp.snapshot.get('files'):
+                    # Retention runs independently of the inference lease. Keep
+                    # the submitted answer, but never persist a grade after expiry.
+                    cp.status, attempt.state = 'unavailable', 'failed'
+                    cp.last_error = attempt.error = 'context_expired'
+                else:
+                    attempt.state, attempt.evaluation = 'completed', {**result.model_dump(), 'model': getattr(self.assessor, 'model_id', 'test-only-fixture')}
+                    cp.status = {'pass': 'passed_with_help' if practice else 'passed', 'follow_up': 'needs_followup', 'unable_to_assess': 'unavailable'}[result.decision]
+                    cp.version += 1
+                    cp.last_error = None
+                    if result.decision == 'pass':
+                        cp.passed_at = time.time()
+                    db.flush()
+                    return self.detail(db, cp)
+            raise AppError('context_expired', 'The saved source expired during assessment. Your answer is saved, but no grade was recorded.', 409)
 
     def history(self, owner, session_id=None):
         with self.database.transaction() as db:

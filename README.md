@@ -121,6 +121,10 @@ See [the current PRD review](docs/PRD_REVIEW.md) for implemented requirements, d
 
 ## Next: review and rehearse
 
+Use [the beginner usability checklist](docs/BEGINNER_TEST.md) to try the explanation, practice, Managed Ask AI and history flows without having to certify coding correctness.
+
+The reproducible practice benchmark is `.venv/Scripts/python.exe -m scripts.check_practice_assessment`. It checks six repository-owned synthetic JavaScript outputs with Node and grades 24 fixed practice answers with local Ollama. It writes a new report on each run and exits unsuccessfully on mismatches or operational failures. It never executes user/model-generated code or changes your learning history. These development labels do not replace independent review.
+
 See [the three-minute demo guide](docs/DEMO_REHEARSAL.md) and [the offline 20-answer human-review worksheet](docs/release-review/HUMAN_REVIEW.html). Create a fresh isolated Git example with `python -m scripts.prepare_demo`. Run the actual local evaluation set with `python -m scripts.evaluate_local_ai`; agent-authored expected labels are not a completed human review.
 
 ## Readiness and recovery
