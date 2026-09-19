@@ -75,7 +75,7 @@ exports.run=async()=>{
     assert.equal(cp.status,'passed');assert.equal(controller.state.gate.available,true);
     const history=await call('/v1/history');assert.equal(history[0].attempts.length,2);
     await controller.execute('ask');
-    assert(vscode.workspace.textDocuments.some(d=>d.languageId==='markdown'&&d.getText()==='Test-only coding assistant response.'));
+    assert(vscode.workspace.textDocuments.some(d=>d.languageId==='markdown'&&d.getText().includes('Test-only coding assistant response.')&&d.getText().includes('Approved saved excerpts: src/findUser.ts')));
     assert.equal(external,0,'Checkpoint interaction did not open a browser');
     results.push('Persisted pass, matching dashboard history and next managed AI response inside editor');
 

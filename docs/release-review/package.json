@@ -1,7 +1,7 @@
 {
-  "version": "0.4.2",
-  "sha256": "32efc1d372d6e7fda3179bab377d737ca0416f2e932d4f9e6f9b40ff62b7c2ca",
+  "version": "0.4.3",
+  "sha256": "645ecb229dff756394ee0f3a1482c893c4f22c4294a8adf08c2026d1d09cb207",
   "archive": "artifacts/beprogram-companion.vsix",
-  "extracted_path": ".tools/release-vsix-0.4.2",
-  "host_report": ".tools/extension-tests/d5168cf8-465b-42a4-94ba-442d61d8710e/host-results.json"
+  "extracted_path": ".tools/release-vsix-0.4.3",
+  "host_report": ".tools/extension-tests/647271b7-d97b-42bb-bf3b-2ce456179b0a/host-results.json"
 }

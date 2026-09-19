@@ -20,7 +20,8 @@ OPERATIONS = {'change_filter_and_question', 'answer_evaluation_and_persistence',
 CATEGORIES = {'none', 'unexpected', 'invalid_local_response', 'ungrounded_local_pass', 'local_model_timeout',
               'rate_limited', 'operation_busy', 'invalid_assessment', 'invalid_evaluation', 'stale_version',
               'unauthorized', 'gate_locked', 'context_expired', 'not_answerable', 'not_found',
-              'idempotency_conflict', 'model_missing', 'local_model_unavailable', 'local_context_too_large'}
+              'idempotency_conflict', 'model_missing', 'local_model_unavailable', 'local_context_too_large',
+              'ask_context_changed', 'invalid_assistant_response'}
 active_correlation = ContextVar('beprogram_correlation', default=None)
 
 

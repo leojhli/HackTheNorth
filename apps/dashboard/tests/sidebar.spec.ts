@@ -94,7 +94,7 @@ test('sidebar UI: saved capture, draft restoration, follow-up, pass and next man
     await page.screenshot({path:'test-results/vscode-sidebar-verified.png',fullPage:true,animations:'disabled'})
     await page.getByRole('button',{name:'Managed Ask AI',exact:true}).last().click()
     await expect(page.getByText('AI response opened in the editor. Capture resulting saved changes before the next request.')).toBeVisible()
-    expect(documents.some(d=>d.content==='Test-only coding assistant response.')).toBeTruthy()
+    expect(documents.some(d=>d.content.includes('Test-only coding assistant response.')&&d.content.includes('Approved saved excerpts: src/findUser.ts'))).toBeTruthy()
     expect(openedBrowser).toBe(false)
     expect(errors).toEqual([])
     expect(JSON.stringify(controller.state)).not.toContain(token)

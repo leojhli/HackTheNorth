@@ -165,12 +165,18 @@ class Controller {
     await this.capture(); // Always reconcile local saved changes before a controlled request.
     await this.refresh();
     if(!this.state.gate?.available)throw Error('Explain the unresolved checkpoint in this sidebar before the next Managed Ask AI request.');
-    const prompt=await this.vscode.window.showInputBox({prompt:'Managed Ask AI — suggestions open in a document; no files are edited automatically.',ignoreFocusOut:true});
+    const prompt=await this.vscode.window.showInputBox({prompt:'Managed Ask AI uses the latest approved saved code excerpts in this project. Unsaved edits are excluded. Suggestions open in a document; files are not edited.',ignoreFocusOut:true});
     if(!prompt)return;
     if(!this.askIntent || this.askIntent.prompt!==prompt || this.askIntent.session!==this.active.sessionId)
       this.askIntent={prompt,session:this.active.sessionId,key:crypto.randomUUID()};
-    const result=await this.request('/v1/sessions/'+this.active.sessionId+'/ask','POST',{prompt,idempotency_key:this.askIntent.key});
-    const doc=await this.vscode.workspace.openTextDocument({language:'markdown',content:result.text});
+    let result;
+    try{result=await this.request('/v1/sessions/'+this.active.sessionId+'/ask','POST',{prompt,idempotency_key:this.askIntent.key});}
+    catch(error){if(error.code==='ask_context_changed')this.askIntent=null;throw error;}
+    const context=result.context;
+    const contextNote=context?.files?.length
+      ? 'Approved saved excerpts: '+context.files.join(', ')+'\nCaptured: '+new Date(context.captured_at*1000).toISOString()+'\n'+(context.partial?'Partial context. ':'')+'Unsaved edits and other files were not included.'
+      : 'No approved code excerpts were available for this response. It is general advice, not a review of your current files.';
+    const doc=await this.vscode.workspace.openTextDocument({language:'markdown',content:'# BeProgram suggestion\n\nAI-generated suggestion. Not executed or verified; it may be incorrect.\n\n'+contextNote+'\n\n---\n\n'+result.text});
     await this.vscode.window.showTextDocument(doc,{preview:false});
     this.askIntent=null;this.state.notice='AI response opened in the editor. Capture resulting saved changes before the next request.';
   }

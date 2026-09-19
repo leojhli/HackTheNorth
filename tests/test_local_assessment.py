@@ -16,6 +16,17 @@ def config(**kwargs):
     return Settings(_env_file=None, **kwargs)
 
 
+def test_managed_prompt_contains_only_explicit_context_and_marks_it_untrusted():
+    model = LocalAssessor(config())
+    calls = []
+    model.generate = lambda messages: calls.append(messages) or 'Suggestion'
+    context = {'files':[{'path':'src/a.js','lines':[{'number':1,'text':'return false;'}]}], 'partial':True}
+    assert model.ask('Suggest a test', context) == 'Suggestion'
+    payload = json.loads(calls[0][1]['content'])
+    assert payload == {'coding_request':'Suggest a test','approved_context':context}
+    assert 'untrusted' in calls[0][0]['content'] and 'unsaved' in calls[0][0]['content']
+
+
 def connect(assessor, monkeypatch, handler):
     original = httpx.Client
     monkeypatch.setattr(assessor, 'client', lambda timeout: original(

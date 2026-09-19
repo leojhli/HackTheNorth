@@ -17,7 +17,7 @@ Setup installs dependencies, builds the site/sidebar, creates `.env` only if abs
 
 For this existing workspace, the configuration has already been converted to local AI. On later launches, use `./scripts/run-local.ps1`. It starts the model server, then the backend at http://127.0.0.1:8000. Keep that backend terminal open.
 
-1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.2 adds fresh practice after Give up and explain, while retaining visible Managed Ask AI buttons, saved-token reuse and elapsed local inference time.
+1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.3 gives Managed Ask AI the latest approved saved code excerpts and shows which files were used. Fresh practice after Give up and explain, saved-token reuse and elapsed local inference time remain available.
 2. Open a trusted local Git project and click BeProgram in the Activity Bar.
 3. Connect using `LOCAL_DEV_TOKEN` from your ignored `.env`. This randomly generated local password is **not an API key**. The extension stores it in VS Code SecretStorage.
 4. Choose project scope (for this repository, try `apps/dashboard/src`), save a meaningful edit, review the source preview and approve capture.
@@ -28,6 +28,8 @@ The model server runs separately in the background. To release its memory:
 ```powershell
 ./scripts/stop-local-ai.ps1
 ```
+
+Managed Ask AI uses only the latest approved AFTER-code excerpts in the current project that are still within its scope. It does not read unsaved buffers or unrelated files. Replies show their saved-source context; missing or expired context is labeled as general advice. Retried requests keep their original snapshot. Suggestions are not executed, verified or automatically applied, and can still be incorrect even with source context.
 
 ## Configuration and troubleshooting
 
@@ -114,6 +116,8 @@ Current release evidence and model-quality limitations are recorded in [verifica
 A small local model is not guaranteed to match a hosted model's judgment. Keep the original human-review requirement: review at least 20 representative explanations before claiming reliable assessment quality. No cloud bill is required, but the computer, disk, electricity and initial download are your own resources.
 
 See `IMPLEMENTATION_PLAN.md` for the living delivery record and `docs/DEPLOYMENT.md` for operation and deployment boundaries.
+
+See [the current PRD review](docs/PRD_REVIEW.md) for implemented requirements, deferred scope, evidence gaps and remaining acceptance work.
 
 ## Next: review and rehearse
 

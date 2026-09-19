@@ -41,8 +41,9 @@ class FixtureAssessor:
             feedback='You explained structure, binding and the limit.' if passed else 'Explain how the value reaches the database.',
             evidence=['Bound parameter'], gaps=[] if passed else ['mechanism'], next_question=None if passed else 'What does the driver do with email and the $1 placeholder?')
 
-    def ask(self, prompt):
+    def ask(self, prompt, context=None):
         self.ask_calls += 1
+        self.last_ask_context = context
         return 'Test-only coding assistant response.'
 
     def explain(self, checkpoint):

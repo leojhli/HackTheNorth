@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
 from .db import Project, CodingSession, Checkpoint, Attempt, Operation, Lease, RateWindow, uid
-from .context import capture, digest, validate_evidence
+from .context import capture, digest, validate_evidence, eligible
 from .contracts import Question, Evaluation
 from .errors import AppError
 
@@ -390,15 +390,48 @@ class CheckpointService:
                         return op.result
                 if session.status != 'active' or self.unresolved(db, session.project_id):
                     raise AppError('gate_locked', 'Resolve the project checkpoint and start a session before the next managed AI request.', 409)
+                project = owned(db, Project, session.project_id, owner)
+                scope_hash = record(project)['scope_hash']
+                if op and 'context_checkpoint_id' in op.payload:
+                    if op.payload['scope_hash'] != scope_hash:
+                        raise AppError('ask_context_changed', 'Project scope changed during this request. Send a new request using the current scope.', 409)
+                    cp = owned(db, Checkpoint, op.payload['context_checkpoint_id'], owner) if op.payload['context_checkpoint_id'] else None
+                    if cp and (cp.project_id != project.id or cp.snapshot_hash != op.payload['snapshot_hash']):
+                        raise AppError('ask_context_changed', 'The saved code context changed. Send a new request.', 409)
+                else:
+                    cp = db.scalar(select(Checkpoint).where(Checkpoint.owner == owner, Checkpoint.project_id == project.id).order_by(Checkpoint.created.desc(), Checkpoint.id.desc()))
+                context_files = [{'path': f['path'], 'lines': f['lines']} for f in (cp.snapshot.get('files', []) if cp else [])
+                    if f.get('lines') and eligible(f['path'], project.scope, project.exclusions)]
+                if op and op.payload.get('had_context') and not context_files:
+                    raise AppError('ask_context_changed', 'The code used for this interrupted request expired or left the scope. Send a new request.', 409)
+                reason = 'approved_snapshot' if context_files else 'no_capture' if not cp else 'source_expired' if cp.snapshot.get('expired') else 'no_eligible_source'
+                context = {'checkpoint_id': cp.id if cp else None, 'snapshot_hash': cp.snapshot_hash if cp else None,
+                    'captured_at': cp.created if cp else None, 'files': [f['path'] for f in context_files],
+                    'partial': bool(cp and (cp.snapshot.get('partial') or len(context_files) != len(cp.snapshot.get('files', [])))), 'reason': reason}
+                context_binding = {'context_checkpoint_id': cp.id if cp else None, 'snapshot_hash': cp.snapshot_hash if cp else None,
+                    'scope_hash': scope_hash, 'had_context': bool(context_files)}
                 if not op:
-                    op = Operation(owner=owner, project_id=session.project_id, kind='ask', key=data.idempotency_key, state='processing', payload={'request_hash': request_hash})
+                    op = Operation(owner=owner, project_id=session.project_id, kind='ask', key=data.idempotency_key, state='processing', payload={'request_hash': request_hash, **context_binding})
                     db.add(op)
                     db.flush()
+                elif 'context_checkpoint_id' not in op.payload:
+                    # Upgrade an interrupted request created before context binding existed.
+                    op.payload = {**op.payload, **context_binding}
                 op_id = op.id
-            result = {'text': self.assessor.ask(data.prompt), 'integration': 'beprogram_managed', 'files_modified': False}
+            text = self.assessor.ask(data.prompt, {'source': 'approved_saved_after_excerpts', 'files': context_files, 'partial': context['partial']})
+            if not isinstance(text, str) or not text.strip() or len(text) > 24000:
+                raise AppError('invalid_assistant_response', 'The local assistant returned an invalid response. Retry your saved request.', 503, True)
+            result = {'text': text, 'context': context, 'integration': 'beprogram_managed', 'files_modified': False}
             with self.database.transaction() as db:
                 self.verify_lease(db, owner, lease)
                 op = owned(db, Operation, op_id, owner)
+                current_project = owned(db, Project, session.project_id, owner)
+                if record(current_project)['scope_hash'] != scope_hash:
+                    raise AppError('ask_context_changed', 'Project scope changed. Send a new request.', 409)
+                if context_files:
+                    current_cp = owned(db, Checkpoint, context['checkpoint_id'], owner)
+                    if not current_cp.snapshot.get('files'):
+                        raise AppError('ask_context_changed', 'The saved code expired while processing. Send a new request.', 409)
                 op.state, op.result = 'completed', result
             return result
 

@@ -36,6 +36,8 @@ test('browser: real API persistence, follow-up, pass and managed gate; desktop/m
   await page.getByLabel('Coding request').fill('Write a safe helper')
   await page.getByRole('dialog').getByRole('button',{name:'Send AI request',exact:true}).click()
   await expect(page.getByText('Test-only coding assistant response.')).toBeVisible()
+  await expect(page.getByText('Approved saved excerpts: src/data/findUser.ts.',{exact:false})).toBeVisible()
+  await page.screenshot({path:'test-results/managed-context-mobile.png',fullPage:true,animations:'disabled'})
   await page.keyboard.press('Escape')
   await page.goto('/history')
   await expect(page.getByText('concepts demonstrated')).toContainText('1')

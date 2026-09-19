@@ -106,3 +106,12 @@ test('practice sends current checkpoint binding, preserves draft on failure, cle
   assert(validateMessage({id:'practice-1',action:'practice'}));
   assert(!validateMessage({id:'practice-2',action:'practice',payload:{passed:true}}));
 });
+
+test('managed context conflict clears the request key so retry can use current scope',async()=>{
+  const {controller,vscode}=fixture();controller.active={sessionId:'session-1'};
+  controller.capture=async()=>{};controller.refresh=async()=>{};controller.state.gate={available:true};
+  vscode.window.showInputBox=async()=> 'Suggest a test';
+  controller.request=async()=>{throw Object.assign(Error('Scope changed'),{code:'ask_context_changed'});};
+  await assert.rejects(controller.ask(),/Scope changed/);
+  assert.equal(controller.askIntent,null);
+});

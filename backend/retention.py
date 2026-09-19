@@ -13,6 +13,10 @@ def expire_context(database, days=30):
                 cp.snapshot = {**cp.snapshot, 'files': [], 'expired': True}
                 for op in db.scalars(select(Operation).where(Operation.kind == 'checkpoint_explanation', Operation.key == cp.id)):
                     op.result = {'expired': True}
+                for op in db.scalars(select(Operation).where(Operation.kind == 'ask', Operation.project_id == cp.project_id)):
+                    if op.payload.get('context_checkpoint_id') == cp.id and op.result:
+                        op.result = {**op.result, 'text': 'The code context for this saved response expired. Send a new request.',
+                            'context': {**op.result.get('context', {}), 'files': [], 'reason': 'source_expired'}}
                 count += 1
         for op in db.scalars(select(Operation).where(Operation.created < cutoff, Operation.kind == 'github_import')):
             op.result = {'files': [], 'expired': True}

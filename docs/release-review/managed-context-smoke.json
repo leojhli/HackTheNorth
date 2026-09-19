@@ -1,0 +1,55 @@
+{
+  "model": "ollama/qwen2.5-coder:7b",
+  "synthetic_source": true,
+  "independent_quality_review": false,
+  "cases": [
+    {
+      "prompt": "Using the approved canJoin code, suggest tests for guestCount 4, 5, and 0 with capacities 5, 5, and 0 respectively. Give the expected boolean for each.",
+      "context": {
+        "source": "approved_saved_after_excerpts",
+        "files": [
+          {
+            "path": "src/canJoin.js",
+            "lines": [
+              {
+                "number": 1,
+                "text": "export function canJoin(guestCount, capacity) {"
+              },
+              {
+                "number": 2,
+                "text": "  if (guestCount >= capacity) return false;"
+              },
+              {
+                "number": 3,
+                "text": "  return true;"
+              },
+              {
+                "number": 4,
+                "text": "}"
+              }
+            ]
+          }
+        ],
+        "partial": false
+      },
+      "response": "Here are the suggested tests for the `canJoin` function with the given inputs and expected outputs:\n\n1. **Test Case 1:**\n   - **Input:** `guestCount = 4`, `capacity = 5`\n   - **Expected Output:** `true`\n   - **Trace:** The function checks if `guestCount` (4) is greater than or equal to `capacity` (5). Since 4 is not greater than or equal to 5, the function returns `true`.\n\n2. **Test Case 2:**\n   - **Input:** `guestCount = 5`, `capacity = 5`\n   - **Expected Output:** `false`\n   - **Trace:** The function checks if `guestCount` (5) is greater than or equal to `capacity` (5). Since 5 is equal to 5, the function returns `false`.\n\n3. **Test Case 3:**\n   - **Input:** `guestCount = 0`, `capacity = 0`\n   - **Expected Output:** `true`\n   - **Trace:** The function checks if `guestCount` (0) is greater than or equal to `capacity` (0). Since 0 is not greater than or equal to 0, the function returns `true`."
+    },
+    {
+      "prompt": "Which database does my project use?",
+      "context": {
+        "files": []
+      },
+      "response": "UNKNOWN"
+    }
+  ],
+  "executed_synthetic_fixture_results": [
+    true,
+    false,
+    false
+  ],
+  "agent_review": {
+    "zero_capacity_suggestion_incorrect": true,
+    "no_context_response_did_not_invent_a_database": true,
+    "independent_quality_review": false
+  }
+}
