@@ -15,14 +15,14 @@ from backend.errors import AppError
 from scripts.assessment_cases import CASES
 
 
-def main():
-    assessor = LocalAssessor(Settings())
+def main(model=None, output='docs/assessment-review'):
+    assessor = LocalAssessor(Settings(**({'ollama_model': model} if model else {})))
     assessor.ready()
     report = {'model': assessor.model_id, 'dataset_sha256': hashlib.sha256(Path('scripts/assessment_cases.py').read_bytes()).hexdigest(),
               'assessor_sha256': hashlib.sha256(Path('backend/assessment.py').read_bytes()).hexdigest(),
               'method': 'Actual local evaluations, fixed authored questions/rubrics. Agent labels, no human review. No question-generation benchmark.',
               'cases': []}
-    out = Path('docs/assessment-review')
+    out = Path(output)
     out.mkdir(parents=True, exist_ok=True)
     # Preserve annotations and previous measurements on later reruns.
     if (out / 'HUMAN_REVIEW.md').exists():
@@ -78,4 +78,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', help='Installed local model allowed by backend settings; does not change .env.')
+    parser.add_argument('--output', default='docs/assessment-review')
+    args = parser.parse_args()
+    main(args.model, args.output)

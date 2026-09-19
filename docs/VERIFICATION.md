@@ -1,3 +1,35 @@
+# Release 0.4.0 verification - 19 September 2026
+
+This section is current. Older evidence below is historical and may describe paid integrations no longer enabled.
+
+- **63 backend tests passed**, 9 extension unit tests, 3 browser scenarios, production site/sidebar builds and 6 actual VS Code host groups. The host test used the exact extracted 0.4.0 archive; evaluator doubles verify state/integration, not grading quality. Two dependency deprecation warnings remain.
+- VSIX SHA-256: `77a81a87be62b91d02189e04d4072b34b03c3ba37e1912fb620dfde047f8cde2`. Package metadata: `release-review/package.json`; host groups: `extension-host-results.json`.
+- **Three consecutive real-model flows passed**: SQL parameter binding with follow-up, null guard with first-answer pass, nonmutating sort with follow-up; each persisted a pass, enabled a managed request, and survived service recreation. `release-review/final-flows.json`.
+- **Beginner flow passed** with a simple question asking what the condition checks/returns; correct plain-language explanation accepted. `release-review/final-beginner.json`.
+- **Six misconception/vague/instruction-override cases received follow-ups**, including incorrect SQL, null and sort explanations. `release-review/final-misconceptions.json`. No general injection-immunity claim.
+- **20 actual evaluations matched 20 fixed agent labels**, no accepted false passes or operational failures in this run. p95 **5.36s**, maximum/cold first request **14.531s**. Dataset was reused in development, not held out; expected labels are agent-authored. `release-review/final/results.json` records model and exact code/data hashes. Human review is still pending.
+- Compared Qwen3 4B Instruct and Qwen3.5 4B local weights; neither promoted because of unfair beginner rejection or response errors. Preserved failed candidate reports under `release-review/`; current model remains Qwen2.5-Coder 7B. Prompt revisions mean the final run is not a pure model-only comparison against earlier runs.
+- Repeated startup reuses the workspace backend; controlled restart and read-only doctor passed. Actual synthetic missing-session request produced a redacted 404 lifecycle record. Local rotating logging and secrecy/fail-open behavior are tested. No hosted Sentry incident or delivery is claimed. Unrelated-port refusal is implemented; destructive interference with an unrelated live process was not attempted.
+- Original UI preserved; current dark mobile and wide light sidebar screenshots visually inspected. Browser checks cover desktop/mobile, recovery/history and no page overflow. Screenshots are synthetic fixture data. Figma hosted pixel comparison remains unavailable; source ZIP is the visual basis.
+
+## Remaining quality findings and acceptance
+
+Passing workflow assertions do not mean generated code is correct. In the final SQL managed reply the model invented a null-email guard that the source does not contain. In the beginner managed reply it incorrectly claimed `canJoin(0, 0)` returns true; actual code returns false. Suggestions open for review and never auto-apply. Generated rubrics can also contain vague/incomplete limitations; one vague learner answer may be mislabeled a contradiction. Do not present reliable grading or correct code generation as established.
+
+Open [the offline human worksheet](release-review/HUMAN_REVIEW.html), independently review the 20 cases, and export `human-review.json`. Run `python -m scripts.validate_review docs/release-review/human-review.json`. No review has been completed on the user's behalf. A real user's current-sidebar rehearsal is also pending. Optional voice, GitHub publication and Solana remain disabled/deferred; no cloud deployment was performed.
+
+---
+
+# Saved-answer quotation retry fix (19 September 2026)
+
+The three-excerpt requirement incorrectly rejected a correct two-sentence answer. Passes now accept one to three distinct nonblank exact learner excerpts; semantic coherence checks remain unchanged. If a passing model response quotes nonexistent/source text, one extraction-only request sees learner explanations alone and must return verifiable excerpts. It uses the remaining operation budget. Missing/fabricated evidence still fails; this is not a proof of semantic correctness or prompt-injection immunity.
+
+- **60 backend tests passed** (5.63 seconds, two existing warnings). Tests cover short quotations, missing/blank/fabricated/duplicate evidence, recovery input isolation and bounded timeout, unchanged follow-ups, same-key retry after failure, durable gate transition and completed-request deduplication.
+- Actual reproduction using the user's saved answer/context returned pass with two matching quotes in 4.47 seconds. No raw learner text was written to this report, and no live history or grade was modified.
+- Actual beginner demo passed question/follow-up/pass/managed request/history/recreation; inference took 4.45/3.73/3.56/2.23 seconds. See `beginner-demo-result.json`; prior report retained as `beginner-demo-before-quote-fix.json`.
+- Six actual-model misconception/vague/instruction-override cases all received follow-ups. The script now accepts `--reference` and rejects partial reference reports clearly; run `python -m scripts.check_local_misconceptions --reference docs/local-model-smoke-before-beginner-prompts.json` to use the archived complete questions. See `local-model-misconceptions.json`. Prior outcomes are retained in `local-model-misconceptions-before-quote-fix.json`.
+- Backend restarted on port 8000. The existing sidebar Retry reuses the saved answer. No extension/frontend changes or reinstall. Broader 20-case/human review is not repeated or marked complete by these checks; older three-quote assertions and fingerprints below are superseded.
+
 # Beginner demo delivery (19 September 2026)
 
 - New generator creates a complete, dependency-free Campus Game Night folder with HTML, CSS, event data, button logic, a small capacity helper, localhost preview launcher and plain-language START_HERE guide. Final folder: `.tools/demo-workspaces/campus-events-55e0e9c0`. Only `src/canJoin.js` differs from its committed baseline: a one-line guard refuses a full room. Capture verified exactly that one file; older folders/history remain untouched.

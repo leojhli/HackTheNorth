@@ -1,15 +1,15 @@
-> Free local edition (0.3.0): run the backend with `./scripts/run-local.ps1`. Questions, evaluations and Managed Ask AI use local Qwen2.5-Coder through Ollama; no provider key or credits are needed. Use `LOCAL_DEV_TOKEN` to connect. Hosted voice, Composio and Sentry are disabled. Local inference may take up to two minutes; failed attempts remain unresolved and retryable. See the root README for model installation.
+> Free local edition (0.4.0): run the backend with `./scripts/run-local.ps1`. Questions, evaluations and Managed Ask AI use local Qwen2.5-Coder through Ollama; no provider key or credits are needed. Use `LOCAL_DEV_TOKEN` to connect. Hosted voice, Composio and Sentry are disabled. Local inference may take up to two minutes; failed attempts remain unresolved and retryable. See the root README for model installation.
 
 ﻿# BeProgram for VS Code
 
-BeProgram's main learning flow now lives in the VS Code sidebar: approved saved change → contextual question → explanation → follow-up when needed → saved result → next Managed Ask AI request. The sidebar reuses the Figma checkpoint components and visual tokens. The website supports history, settings, optional receipts, voice and verification.
+BeProgram's main learning flow now lives in the VS Code sidebar: approved saved change → contextual question → explanation → follow-up when needed → saved result → next Managed Ask AI request. The sidebar reuses the Figma checkpoint components and visual tokens. The website supports history and settings. Receipts, voice and GitHub publication are disabled in this edition.
 
 ## Install and try it
 
 1. Start the backend from the repository root with ./scripts/run-local.ps1. The launcher starts local Ollama with cloud features disabled. Run ./scripts/setup-local-ai.ps1 first if the runtime/model is missing. No API key is needed; unavailable local inference never produces a simulated pass.
 2. Install artifacts/beprogram-companion.vsix using **Extensions: Install from VSIX…**. Alternatively run the command below.
 3. Open and trust a local Git repository. Click **BeProgram** in the Activity Bar, or run **BeProgram: Open checkpoint** from the Command Palette.
-4. Click **Connect account**. Enter the backend's LOCAL_DEV_TOKEN for local development, or a Supabase access token for your deployed account. Tokens are entered in a native VS Code password prompt and stored in SecretStorage, never in the webview.
+4. Click **Connect account**. Enter the backend's LOCAL_DEV_TOKEN for local development, for this supported local edition. Tokens are entered in a native VS Code password prompt and stored in SecretStorage, never in the webview.
 5. Choose an existing project or **Create project**. Approve the intended relative source paths and start the session. For this BeProgram repository, use apps/dashboard/src; a typical application might use src. Scope currently accepts literal files/directories, not globs.
 6. Save a meaningful JS/TS edit. After five seconds the extension offers a capture preview; you can also click **Review current changes**. Inspect the JSON document, then approve the exact saved snapshot in the native confirmation prompt.
 7. Answer and follow up **inside the sidebar**. Pause keeps the checkpoint unresolved. After a persisted pass, click **Continue coding**, then **Send AI request**. Approve capture reconciliation and enter your request in the native prompt. Suggestions open in an editor document.
@@ -59,3 +59,7 @@ Only **BeProgram Managed Ask AI** is controlled. Claude, Codex, Copilot, manual 
 
 This is a local development package, not a Marketplace publication. Provider-backed assessment quality and production service acceptance still require the configured credentials and checks described in the repository's verification record.
 
+
+## Local readiness
+
+Run `.venv/Scripts/python.exe -m scripts.doctor` from the repository. Repeated `./scripts/run-local.ps1` reuses the existing backend; use `-Restart` to load code/configuration changes. The sidebar reuses your saved local token between projects and shows elapsed processing time. A model error preserves the submitted explanation without granting a pass.

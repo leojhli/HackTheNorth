@@ -37,6 +37,18 @@ class Controller {
     return value;
   }
   async remember() {await this.context.workspaceState.update('beprogram.session',this.active);}
+  async connectionProjects() {
+    const key='beprogram.token:'+this.origin();
+    if(await this.context.secrets.get(key)) {
+      try{return await this.request('/v1/projects');}
+      catch(error){if(error.code!=='unauthorized')throw error;await this.context.secrets.delete(key);}
+    }
+    const token=await this.vscode.window.showInputBox({password:true,ignoreFocusOut:true,prompt:'BeProgram local password: copy the value of LOCAL_DEV_TOKEN from the backend .env. No paid API key is needed. Stored in VS Code SecretStorage.'});
+    if(!token)return null;
+    await this.context.secrets.store(key,token);
+    try{return await this.request('/v1/projects');}
+    catch(error){if(error.code==='unauthorized')await this.context.secrets.delete(key);throw error;}
+  }
   async restore() {
     this.trusted();
     const saved=this.context.workspaceState.get('beprogram.session');
@@ -81,14 +93,12 @@ class Controller {
     if(folder.uri.scheme!=='file')throw Error('This extension currently supports local Git repositories.');
     const root=path.resolve((await git(folder.uri.fsPath,'rev-parse','--show-toplevel')).trim());
     const origin=this.origin();
-    const token=await this.vscode.window.showInputBox({password:true,ignoreFocusOut:true,prompt:'BeProgram access token (LOCAL_DEV_TOKEN or Supabase access token). Stored only in VS Code SecretStorage.'});
-    if(!token)return;
     // Reset all previous-account content before using another identity.
     this.active=null;this.checkpoint=null;this.draft=null;this.answerIntent=null;this.askIntent=null;
     await this.remember();
     Object.assign(this.state,{connected:false,project:null,session:null,checkpoint:null,gate:null,history:[]});this.emit();
-    await this.context.secrets.store('beprogram.token:'+origin,token);
-    const projects=await this.request('/v1/projects');
+    const projects=await this.connectionProjects();
+    if(!projects)return;
     const selected=await this.vscode.window.showQuickPick([...projects.map(project=>({label:project.name,description:project.scope.join(', '),project})),{label:'$(add) Create project',create:true}],{title:'Choose the approved project for this Git repository'});
     if(!selected)return;
     let project=selected.project;

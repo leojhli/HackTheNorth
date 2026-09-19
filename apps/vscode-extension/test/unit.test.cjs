@@ -16,6 +16,25 @@ function fixture(){
   controller.checkpoint=structuredClone(cp);
   return {controller,vscode,context,emitted};
 }
+test('connecting another project reuses the server token without another password prompt',async()=>{
+  const {controller,vscode}=fixture();let prompts=0;
+  vscode.window.showInputBox=async()=>{prompts++;return 'new-token';};
+  controller.request=async()=>[{id:'project-1',name:'Existing project'}];
+  assert.equal((await controller.connectionProjects()).length,1);
+  assert.equal(prompts,0);
+});
+test('expired stored token prompts once; an outage does not erase the token',async()=>{
+  const {controller,vscode,context}=fixture();let prompts=0,calls=0;
+  vscode.window.showInputBox=async()=>{prompts++;return 'replacement-token';};
+  controller.request=async()=>{if(++calls===1)throw Object.assign(Error('Expired'),{code:'unauthorized'});return [];};
+  assert.deepEqual(await controller.connectionProjects(),[]);
+  assert.equal(prompts,1);
+  assert.equal(await context.secrets.get('beprogram.token:http://127.0.0.1:8000'),'replacement-token');
+  controller.request=async()=>{throw Error('Unavailable');};
+  await assert.rejects(controller.connectionProjects(),/Unavailable/);
+  assert.equal(prompts,1);
+  assert.equal(await context.secrets.get('beprogram.token:http://127.0.0.1:8000'),'replacement-token');
+});
 test('message boundary denies arbitrary URLs, commands, pass assertions and stale-shaped answers',()=>{
   assert(validateMessage({id:'a',action:'answer',payload:draft}));
   for(const message of [

@@ -17,8 +17,10 @@ class Settings(BaseSettings):
     allowed_origins: str = 'http://localhost:5173,http://127.0.0.1:5173'
     app_origin: str = 'http://localhost:8000'
     ollama_url: str = 'http://127.0.0.1:11435'
-    ollama_model: Literal['qwen2.5-coder:7b', 'qwen2.5-coder:3b'] = 'qwen2.5-coder:7b'
+    ollama_model: Literal['qwen2.5-coder:7b', 'qwen2.5-coder:3b', 'qwen3:4b-instruct-2507-q4_K_M', 'qwen3.5:4b'] = 'qwen2.5-coder:7b'
     ollama_context: int = 16384
+    local_logs_enabled: bool = True
+    local_log_path: str = '.tools/logs/lifecycle.jsonl'
     sentry_dsn: str = ''
     elevenlabs_api_key: str = ''
     elevenlabs_voice_id: str = ''

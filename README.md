@@ -17,7 +17,7 @@ Setup installs dependencies, builds the site/sidebar, creates `.env` only if abs
 
 For this existing workspace, the configuration has already been converted to local AI. On later launches, use `./scripts/run-local.ps1`. It starts the model server, then the backend at http://127.0.0.1:8000. Keep that backend terminal open.
 
-1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.3.0 includes local-model messaging and longer request timeouts.
+1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.0 reuses your saved token between projects and shows elapsed local inference time.
 2. Open a trusted local Git project and click BeProgram in the Activity Bar.
 3. Connect using `LOCAL_DEV_TOKEN` from your ignored `.env`. This randomly generated local password is **not an API key**. The extension stores it in VS Code SecretStorage.
 4. Choose project scope (for this repository, try `apps/dashboard/src`), save a meaningful edit, review the source preview and approve capture.
@@ -51,7 +51,7 @@ If your machine struggles, use the smaller model:
 # Set OLLAMA_MODEL=qwen2.5-coder:3b in .env, then restart BeProgram.
 ```
 
-The smaller model may assess reasoning less reliably. Both permitted model names refer to local weights. Ollama Cloud is disabled by the launcher; the backend rejects remote model metadata and never falls back to a hosted model. Input exceeding the configured context budget fails explicitly. For a saved oversized checkpoint, increase `OLLAMA_CONTEXT` up to 32768 if memory permits and retry; use smaller scopes for future projects. Do not silently discard evidence to obtain a pass.
+The smaller model may assess reasoning less reliably. The configured default and smaller fallback both use local weights. Experimental Qwen3/Qwen3.5 candidates were evaluated but not promoted because they introduced assessment errors. Ollama Cloud is disabled by the launcher; the backend rejects remote model metadata and never falls back to a hosted model. Input exceeding the configured context budget fails explicitly. For a saved oversized checkpoint, increase `OLLAMA_CONTEXT` up to 32768 if memory permits and retry; use smaller scopes for future projects. Do not silently discard evidence to obtain a pass.
 
 ## Other operating systems
 
@@ -109,7 +109,7 @@ npm run package
 
 Browser/host tests inject explicit test-only evaluators, never production mocks. The live local smoke command uses the actual model for three different changes, vague-answer follow-ups, immediate pass, persistence/restart and managed requests. It writes synthetic evidence to `docs/local-model-smoke.json`. See `docs/VERIFICATION.md` for results and remaining quality checks.
 
-Verified here: 47 backend tests, 3 browser scenarios, 7 extension unit tests, 6 actual host check groups, three real-model flows and six rejection cases.
+Current release evidence and model-quality limitations are recorded in [verification](docs/VERIFICATION.md). Automated UI/state tests use explicit test evaluators; they do not establish real-model judgment quality.
 
 A small local model is not guaranteed to match a hosted model's judgment. Keep the original human-review requirement: review at least 20 representative explanations before claiming reliable assessment quality. No cloud bill is required, but the computer, disk, electricity and initial download are your own resources.
 
@@ -117,4 +117,16 @@ See `IMPLEMENTATION_PLAN.md` for the living delivery record and `docs/DEPLOYMENT
 
 ## Next: review and rehearse
 
-See [the three-minute demo guide](docs/DEMO_REHEARSAL.md) and [the 20-answer human-review worksheet](docs/assessment-review/HUMAN_REVIEW.md). Create a fresh isolated Git example with `python -m scripts.prepare_demo`. Run the actual local evaluation set with `python -m scripts.evaluate_local_ai`; agent-authored expected labels are not a completed human review.
+See [the three-minute demo guide](docs/DEMO_REHEARSAL.md) and [the offline 20-answer human-review worksheet](docs/release-review/HUMAN_REVIEW.html). Create a fresh isolated Git example with `python -m scripts.prepare_demo`. Run the actual local evaluation set with `python -m scripts.evaluate_local_ai`; agent-authored expected labels are not a completed human review.
+
+## Readiness and recovery
+
+```powershell
+.venv/Scripts/python.exe -m scripts.doctor
+./scripts/run-local.ps1          # Reuses this workspace's running backend
+./scripts/run-local.ps1 -Restart # Loads backend code or .env changes
+```
+
+The launcher refuses to stop an unrelated process on port 8000. Local lifecycle logs rotate at `.tools/logs/lifecycle.jsonl` (1 MB plus three backups). They contain operation names, opaque correlation IDs, outcome categories and durations; source, answers and tokens are excluded. Logging failure does not change the learning result. Disable with `LOCAL_LOGS_ENABLED=false`.
+
+The supported delivery is a local prototype. Review model feedback and suggestions: a valid response can still contain a misconception or unfair grading. No test result substitutes for the 20-case human review and your VS Code rehearsal.

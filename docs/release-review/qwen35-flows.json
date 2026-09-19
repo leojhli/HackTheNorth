@@ -1,0 +1,63 @@
+{
+  "provider": "local Ollama, actual inference",
+  "cases": [
+    {
+      "name": "SQL bound parameter",
+      "question": {
+        "decision": "assess",
+        "concept": "SQL injection prevention via parameterized queries",
+        "question": "What happens if you call this function with an email containing a single quote, such as \"admin' OR '1'='1\"?",
+        "reason": "The edit replaces string concatenation with a parameterized query using $1 and an array argument. The learner must explain how the database driver handles the injection attempt versus the previous vulnerable code.",
+        "rubric": [
+          "The function now prevents SQL injection by passing the email as a bound parameter rather than embedding it directly in the SQL string.",
+          "The mechanism relies on the database driver treating the second argument as data to be escaped, not part of the query syntax.",
+          "A relevant limitation is that this specific edit only protects against injection if the database driver correctly implements parameter binding; if the driver ignores the array and concatenates strings anyway, protection fails."
+        ],
+        "evidence": [
+          {
+            "path": "src/example.ts",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "return db.query(\"SELECT * FROM users WHERE email = $1\", [email]);"
+          }
+        ],
+        "important_distinct_use": false
+      },
+      "attempts": []
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/v1/config",
+      "status": 200,
+      "seconds": 0.05
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/3e5da2db-1805-47ca-acd1-05b8ed10fad9/changes",
+      "status": 200,
+      "seconds": 4.34
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/d3537a90-ddfc-43a9-9735-35807bae0181/answers",
+      "status": 503,
+      "seconds": 4.16,
+      "error": "invalid_local_response"
+    }
+  ],
+  "model": "qwen3.5:4b"
+}

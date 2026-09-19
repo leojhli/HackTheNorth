@@ -1,0 +1,167 @@
+{
+  "provider": "local Ollama, actual inference",
+  "cases": [
+    {
+      "name": "Demo: game night capacity",
+      "question": {
+        "decision": "assess",
+        "concept": "Early return logic for capacity validation",
+        "question": "What does this function return when guestCount equals capacity?",
+        "reason": "The code explicitly checks if guestCount is greater than or equal to capacity and returns false, which is a critical boundary condition for the join logic.",
+        "rubric": [
+          "The function returns false when the number of guests meets or exceeds the venue capacity.",
+          "The mechanism uses an early return statement to immediately exit with false upon hitting the limit.",
+          "A potential edge case is that this check prevents joining exactly at capacity, which might be intended but could be a strict limitation depending on business rules."
+        ],
+        "evidence": [
+          {
+            "path": "src/canJoin.js",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "if (guestCount >= capacity) return false;"
+          }
+        ],
+        "important_distinct_use": false
+      },
+      "attempts": [
+        {
+          "id": "2198d8d7-23f5-40e1-850a-75afafb54c8d",
+          "checkpoint_id": "a36eccfb-10e7-4cc3-b514-b4b4966c2c9f",
+          "key": "live-weak-0",
+          "request_hash": "5548da282424dba214982fe3bbb9f43690165387613a12b8924eb71cf6a77a0b",
+          "version": 1,
+          "answer": "It fixes the signup.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "follow_up",
+            "intent_correct": false,
+            "mechanism_correct": false,
+            "reasoning_correct": false,
+            "central_contradiction": true,
+            "feedback": "Your answer 'It fixes the signup' does not explain what the function returns when guestCount equals capacity. The code explicitly checks if guests meet or exceed capacity and returns false in that case. Please explain the specific return value for the boundary condition where guestCount equals capacity.",
+            "evidence": [
+              "The learner states: 'It fixes the signup.'",
+              "The rubric asks: 'What does this function return when guestCount equals capacity?'"
+            ],
+            "gaps": [
+              "The learner failed to identify the specific return value (false) for the boundary condition where guestCount equals capacity.",
+              "The explanation 'It fixes the signup' is vague and does not address the logic of the early return or the capacity check.",
+              "There is a central contradiction between the question asking about the return value at equality and the answer implying a general fix without specifying the outcome."
+            ],
+            "next_question": "What does the function return when guestCount is exactly equal to capacity?",
+            "answer_quotes": [],
+            "model": "ollama/qwen3.5:4b"
+          },
+          "error": null,
+          "created": 1789828328.0817263
+        },
+        {
+          "id": "96b65a41-e9a0-41de-880f-14cd2ea1c945",
+          "checkpoint_id": "a36eccfb-10e7-4cc3-b514-b4b4966c2c9f",
+          "key": "live-good-0",
+          "request_hash": "def496c959ac9e3416fc375b17eceb6bddcfc1ba2b252868d1a91447aad353e0",
+          "version": 2,
+          "answer": "This stops us adding more people when the event is full. If the number is five or more, it returns false, which means no. With four guests the check is false, so it reaches return true and someone can join. This function only checks for room; the button code actually adds the person.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "pass",
+            "intent_correct": true,
+            "mechanism_correct": true,
+            "reasoning_correct": true,
+            "central_contradiction": false,
+            "feedback": "Your explanation clearly demonstrates understanding of the early return logic, the specific behavior at the boundary where guestCount equals capacity, and how the function handles cases below the limit. You have correctly identified that the function prevents joining when the venue is full or over capacity.",
+            "evidence": [
+              "The learner correctly identifies that the function returns false when guestCount meets or exceeds capacity.",
+              "The learner explains the early return mechanism: if the condition is met, it exits immediately with false.",
+              "The learner accurately describes the boundary case where guestCount equals capacity (5), resulting in a false return.",
+              "The learner correctly notes that for guestCount less than capacity (4), the check fails and execution continues to return true."
+            ],
+            "gaps": [],
+            "next_question": null,
+            "answer_quotes": [
+              "This stops us adding more people when the event is full.",
+              "If the number is five or more, it returns false, which means no.",
+              "With four guests the check is false, so it reaches return true and someone can join."
+            ],
+            "model": "ollama/qwen3.5:4b"
+          },
+          "error": null,
+          "created": 1789828332.7890897
+        }
+      ],
+      "managed_reply": "```javascript\n// Test: Negative guest count with positive capacity\nconst result = canJoin(-5, 10);\nexpect(result).toBe(true); // Should allow negative guests as they don't exceed capacity\n```"
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/v1/config",
+      "status": 200,
+      "seconds": 0.19
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/0d53d9cd-8940-4250-b3f3-e6fa60f6e6ba/changes",
+      "status": 200,
+      "seconds": 10.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/a36eccfb-10e7-4cc3-b514-b4b4966c2c9f/answers",
+      "status": 200,
+      "seconds": 4.7
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/0d53d9cd-8940-4250-b3f3-e6fa60f6e6ba/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/a36eccfb-10e7-4cc3-b514-b4b4966c2c9f/answers",
+      "status": 200,
+      "seconds": 4.19
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/0d53d9cd-8940-4250-b3f3-e6fa60f6e6ba/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/0d53d9cd-8940-4250-b3f3-e6fa60f6e6ba/ask",
+      "status": 200,
+      "seconds": 0.91
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/0d53d9cd-8940-4250-b3f3-e6fa60f6e6ba/end",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "GET",
+      "path": "/v1/history",
+      "status": 200,
+      "seconds": 0.01
+    }
+  ],
+  "model": "qwen3.5:4b",
+  "passed": true
+}

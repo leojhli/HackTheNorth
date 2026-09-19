@@ -38,12 +38,13 @@ CASES = [
 ]
 
 
-def main(demo=False):
+def main(demo=False, model=None, output=None):
     selected = CASES if not demo else [DEMO_CASE]
     report = {'provider': 'local Ollama, actual inference', 'cases': [], 'requests': []}
     with tempfile.TemporaryDirectory(prefix='beprogram-local-live-') as directory:
         config = Settings(database_url='sqlite:///' + str(Path(directory) / 'smoke.db'),
-                          environment='test', auth_mode='local', local_dev_token='isolated-live-check-not-a-user-token-123')
+                          environment='test', auth_mode='local', local_dev_token='isolated-live-check-not-a-user-token-123',
+                          **({'ollama_model': model} if model else {}))
         report['model'] = config.ollama_model
         database = Database(config.database_url)
         app = create_app(config, database)
@@ -91,11 +92,14 @@ def main(demo=False):
             report['passed'] = True
         finally:
             database.engine.dispose()
-            Path('docs/beginner-demo-result.json' if demo else 'docs/local-model-smoke.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+            Path(output or ('docs/beginner-demo-result.json' if demo else 'docs/local-model-smoke.json')).write_text(json.dumps(report, indent=2), encoding='utf-8')
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--demo', action='store_true', help='Rehearse the beginner event-capacity demo through the actual API/model.')
-    main(parser.parse_args().demo)
+    parser.add_argument('--model', help='Installed local model; does not change .env.')
+    parser.add_argument('--output', help='Separate report path for comparisons.')
+    args = parser.parse_args()
+    main(args.demo, args.model, args.output)
