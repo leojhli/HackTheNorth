@@ -12,7 +12,7 @@ from .db import Database, Attempt
 from .auth import Auth
 from .assessment import LocalAssessor
 from .service import CheckpointService, owned, record
-from .contracts import ProjectInput, ScopeInput, SessionInput, ChangeInput, AnswerInput, AskInput
+from .contracts import ProjectInput, ScopeInput, SessionInput, ChangeInput, AnswerInput, AskInput, CheckpointBinding
 from .errors import AppError
 from . import observability
 
@@ -125,10 +125,20 @@ def create_app(config=None, database=None, assessor=None):
     def retry(id: str, owner=Depends(auth)):
         return service.retry_question(owner, id)
 
+    @app.post('/v1/checkpoints/{id}/explanation')
+    def explanation(id: str, owner=Depends(auth)):
+        with observability.stage('checkpoint_explanation', str(uuid.uuid4())):
+            return service.explain(owner, id)
+
     @app.post('/v1/checkpoints/{id}/answers')
     def answer(id: str, data: AnswerInput, owner=Depends(auth)):
         with observability.stage('answer_evaluation_and_persistence', str(uuid.uuid4())):
             return service.answer(owner, id, data)
+
+    @app.post('/v1/checkpoints/{id}/practice')
+    def practice(id: str, data: CheckpointBinding, owner=Depends(auth)):
+        with observability.stage('practice_question', str(uuid.uuid4())):
+            return service.start_practice(owner, id, data)
 
     @app.get('/v1/attempts/{id}')
     def attempt(id: str, owner=Depends(auth)):

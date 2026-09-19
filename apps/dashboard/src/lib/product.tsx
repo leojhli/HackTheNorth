@@ -5,13 +5,16 @@ import type { DiffLine } from './fixture'
 
 export function productData(project: Project | null, session: Session | null, cp: Checkpoint | null, history: Checkpoint[], config: Config | null) {
   const file = cp?.snapshot.files?.[0]
-  const evaluations = cp?.attempts.filter(a => a.evaluation).map(a => a.evaluation!) || []
+  const evaluations = cp?.attempts.filter(a => a.evaluation && (!cp.practice_started_version || a.version >= cp.practice_started_version)).map(a => a.evaluation!) || []
   const diff: DiffLine[] = file?.edits.flatMap(e => [
     ...e.removed.map(text => ({ kind: 'del' as const, text })), ...e.added.map(text => ({ kind: 'add' as const, text }))]) || []
   return { PROJECT: project?.name || 'Select a project', LANGUAGE: 'TypeScript / JavaScript',
     CURRENT_FILE: file?.path || 'Saved source', CONCEPT: cp?.question?.concept || 'Code understanding',
     CAPTURED_CODE: file?.lines.map(l => `${l.number}  ${l.text}`).join('\n') || '', CAPTURED_DIFF: diff,
-    INITIAL_QUESTION: cp?.question?.question || '', FOLLOWUP_QUESTION: cp?.current_question || '',
+    LEARNING_EXPLANATION: cp?.learning_explanation || '',
+    PRACTICE_ACTIVE: !!cp?.practice_question, PRACTICE_REQUIRED: !!cp?.explanation_viewed && !cp.practice_question && !passed(cp),
+    PASSED_WITH_HELP: cp?.status === 'passed_with_help',
+    INITIAL_QUESTION: cp?.practice_question?.question || cp?.question?.question || '', FOLLOWUP_QUESTION: cp?.current_question || '',
     FOLLOWUP_FEEDBACK: evaluations.at(-1)?.feedback || '', SUCCESS_FEEDBACK: evaluations.at(-1)?.feedback || '',
     REASON: cp?.question?.reason || '', CAPTURED_AT: cp ? new Date(cp.created*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '',
     DEMONSTRATED_CONCEPTS: [...new Set(history.filter(passed).map(c => c.question?.concept || 'Understanding'))],

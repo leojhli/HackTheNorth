@@ -11,6 +11,8 @@ def expire_context(database, days=30):
         for cp in db.scalars(select(Checkpoint).where(Checkpoint.created < cutoff)):
             if cp.snapshot.get('files'):
                 cp.snapshot = {**cp.snapshot, 'files': [], 'expired': True}
+                for op in db.scalars(select(Operation).where(Operation.kind == 'checkpoint_explanation', Operation.key == cp.id)):
+                    op.result = {'expired': True}
                 count += 1
         for op in db.scalars(select(Operation).where(Operation.created < cutoff, Operation.kind == 'github_import')):
             op.result = {'files': [], 'expired': True}

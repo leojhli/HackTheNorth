@@ -1,4 +1,5 @@
 import time
+from types import SimpleNamespace
 from contextlib import contextmanager
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
@@ -133,10 +134,89 @@ class CheckpointService:
         value = record(cp)
         attempts = list(db.scalars(select(Attempt).where(Attempt.checkpoint_id == cp.id).order_by(Attempt.created)))
         value['attempts'] = [record(a) for a in attempts]
-        evaluations = [a.evaluation for a in attempts if a.state == 'completed' and a.evaluation]
-        value['current_question'] = next((e['next_question'] for e in reversed(evaluations) if e.get('next_question')), None) or (cp.question or {}).get('question')
+        practice = self.practice_operation(db, cp)
+        practice_data = practice.result if practice else None
+        value['practice_question'] = practice_data['question'] if practice_data else None
+        value['practice_started_version'] = practice_data['started_version'] if practice_data else None
+        evaluations = [a.evaluation for a in attempts if a.state == 'completed' and a.evaluation and (not practice_data or a.version >= practice_data['started_version'])]
+        value['current_question'] = next((e['next_question'] for e in reversed(evaluations) if e.get('next_question')), None) or (value['practice_question'] or cp.question or {}).get('question')
         value['can_pause'] = sum(e['decision'] == 'follow_up' for e in evaluations) >= 3
+        help_op = db.scalar(select(Operation).where(Operation.owner == cp.owner, Operation.kind == 'checkpoint_explanation', Operation.key == cp.id, Operation.state == 'completed'))
+        value['explanation_viewed'] = bool(help_op)
+        value['learning_explanation'] = help_op.result.get('text') if help_op and help_op.result else None
         return value
+
+    def practice_operation(self, db, cp):
+        return db.scalar(select(Operation).where(Operation.owner == cp.owner, Operation.kind == 'checkpoint_practice', Operation.key == cp.id, Operation.state == 'completed'))
+
+    def start_practice(self, owner, id, data):
+        """Freeze a new question, retaining the original question and all earlier attempts."""
+        with self.serial(owner) as lease:
+            with self.database.transaction() as db:
+                cp = owned(db, Checkpoint, id, owner)
+                existing = self.practice_operation(db, cp)
+                valid_versions = {cp.version, existing.payload['version']} if existing else {cp.version}
+                if data.version not in valid_versions or data.snapshot_hash != cp.snapshot_hash:
+                    raise AppError('stale_version', 'Refresh the checkpoint before starting practice.', 409)
+                if existing:
+                    return self.detail(db, cp)
+                if cp.status in RESOLVED or not cp.question or cp.question.get('decision') != 'assess':
+                    raise AppError('not_answerable', 'This checkpoint is not awaiting practice.', 409)
+                if not cp.snapshot.get('files'):
+                    raise AppError('context_expired', 'This saved source expired; practice cannot be generated.', 409)
+                help_op = db.scalar(select(Operation).where(Operation.owner == owner, Operation.kind == 'checkpoint_explanation', Operation.key == id, Operation.state == 'completed'))
+                if not help_op or not help_op.result or not help_op.result.get('text'):
+                    raise AppError('explanation_required', 'Read the code explanation before starting assisted practice.', 409)
+                explanation = help_op.result['text']
+                version, snapshot_hash = cp.version, cp.snapshot_hash
+            try:
+                question = Question.model_validate(self.assessor.practice(cp, explanation))
+                validate_evidence(question, cp.snapshot)
+                if question.decision != 'assess' or question.question.casefold().strip() == cp.question['question'].casefold().strip():
+                    raise ValueError('Practice needs a distinct assessment question')
+                question.concept = cp.question['concept']
+            except AppError:
+                raise
+            except Exception:
+                raise AppError('invalid_practice', 'The model did not produce a valid fresh question. Your explanation is saved; try again.', 503, True) from None
+            with self.database.transaction() as db:
+                self.verify_lease(db, owner, lease)
+                cp = owned(db, Checkpoint, id, owner)
+                if cp.version != version or cp.snapshot_hash != snapshot_hash or not cp.snapshot.get('files'):
+                    raise AppError('stale_version', 'The checkpoint changed. Refresh before trying again.', 409)
+                cp.version += 1
+                cp.status, cp.last_error = 'pending', None
+                db.add(Operation(owner=owner, project_id=cp.project_id, kind='checkpoint_practice', key=id,
+                    state='completed', payload={'version': version, 'snapshot_hash': snapshot_hash},
+                    result={'question': question.model_dump(), 'started_version': cp.version}))
+                db.flush()
+                return self.detail(db, cp)
+
+    def explain(self, owner, id):
+        """Offer saved teaching material without submitting an answer or clearing the gate."""
+        with self.serial(owner) as lease:
+            with self.database.transaction() as db:
+                cp = owned(db, Checkpoint, id, owner)
+                op = db.scalar(select(Operation).where(Operation.owner == owner, Operation.kind == 'checkpoint_explanation', Operation.key == id))
+                if op and op.state == 'completed':
+                    return self.detail(db, cp)
+                if cp.status in RESOLVED or not cp.question or cp.question.get('decision') != 'assess':
+                    raise AppError('not_answerable', 'Open an unresolved question before requesting an explanation.', 409)
+                if not cp.snapshot.get('files'):
+                    raise AppError('context_expired', 'This saved source has expired; an explanation cannot be generated.', 409)
+                version, snapshot_hash = cp.version, cp.snapshot_hash
+            text = self.assessor.explain(cp)
+            if not isinstance(text, str) or not text.strip() or len(text) > 24000:
+                raise AppError('invalid_explanation', 'The model could not produce an explanation. Your checkpoint is unchanged; try again.', 503, True)
+            with self.database.transaction() as db:
+                self.verify_lease(db, owner, lease)
+                cp = owned(db, Checkpoint, id, owner)
+                if cp.version != version or cp.snapshot_hash != snapshot_hash or not cp.snapshot.get('files'):
+                    raise AppError('stale_version', 'The checkpoint changed. Refresh before trying again.', 409)
+                db.add(Operation(owner=owner, project_id=cp.project_id, kind='checkpoint_explanation', key=id,
+                    state='completed', payload={'checkpoint_id': id, 'snapshot_hash': snapshot_hash}, result={'text': text}))
+                db.flush()
+                return self.detail(db, cp)
 
     def change(self, owner, session_id, data):
         with self.serial(owner) as lease:
@@ -247,7 +327,15 @@ class CheckpointService:
                     raise AppError('not_answerable', 'This checkpoint is not awaiting an explanation.', 409)
                 if not cp.snapshot.get('files'):
                     raise AppError('context_expired', 'This source context expired; it cannot be assessed.', 409)
+                practice = self.practice_operation(db, cp)
+                help_op = db.scalar(select(Operation).where(Operation.owner == owner, Operation.kind == 'checkpoint_explanation', Operation.key == id, Operation.state == 'completed'))
+                if help_op and not practice:
+                    raise AppError('practice_required', 'Start a fresh practice question after reading the explanation.', 409)
                 previous = [record(a) for a in db.scalars(select(Attempt).where(Attempt.checkpoint_id == id, Attempt.state == 'completed').order_by(Attempt.created))]
+                evaluation_checkpoint = cp
+                if practice:
+                    previous = [a for a in previous if a['version'] >= practice.result['started_version']]
+                    evaluation_checkpoint = SimpleNamespace(snapshot=cp.snapshot, question=practice.result['question'], practice=True)
                 if not attempt:
                     attempt = Attempt(owner=owner, checkpoint_id=id, key=data.idempotency_key, request_hash=request_hash,
                         version=data.version, answer=data.answer, modality=data.modality)
@@ -257,7 +345,7 @@ class CheckpointService:
                 cp.status = 'evaluating'
                 attempt_id = attempt.id
             try:
-                result = Evaluation.model_validate(self.assessor.evaluate(cp, previous, data.answer))
+                result = Evaluation.model_validate(self.assessor.evaluate(evaluation_checkpoint, previous, data.answer))
             except Exception as exc:
                 with self.database.transaction() as db:
                     self.verify_lease(db, owner, lease)
@@ -273,7 +361,7 @@ class CheckpointService:
                 if cp.version != data.version or cp.snapshot_hash != data.snapshot_hash:
                     raise AppError('stale_version', 'A newer result exists. Refresh this checkpoint.', 409)
                 attempt.state, attempt.evaluation = 'completed', {**result.model_dump(), 'model': getattr(self.assessor, 'model_id', 'test-only-fixture')}
-                cp.status = {'pass': 'passed', 'follow_up': 'needs_followup', 'unable_to_assess': 'unavailable'}[result.decision]
+                cp.status = {'pass': 'passed_with_help' if practice else 'passed', 'follow_up': 'needs_followup', 'unable_to_assess': 'unavailable'}[result.decision]
                 cp.version += 1
                 cp.last_error = None
                 if result.decision == 'pass':

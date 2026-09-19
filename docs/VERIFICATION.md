@@ -94,6 +94,8 @@ Hosted OpenAI/ElevenLabs/Composio/Sentry acceptance is no longer a delivery targ
 
 Recorded 19 September 2026. Local automated evidence is distinct from provider-backed acceptance.
 
+**Current scope:** use the latest local release section at the end of this file. Earlier sections are historical; their paid-provider setup and acceptance instructions do not apply to the current local edition.
+
 ## VS Code sidebar delivery
 
 The checkpoint flow now runs inside an actual VS Code sidebar, superseding the original browser-only companion. Version 0.2.0 is packaged at `artifacts/beprogram-companion.vsix` (12 archive entries, approximately 98 KB). Its SHA-256 is `ed632c4ebce9f4d071e537be4cf74151a686ae262624194a2578f680a17db585`.
@@ -174,3 +176,40 @@ Configure credentials locally or in the deployment secret manager; never paste t
 8. **Deployment:** execute the supplied Docker/compose assets on a Docker-capable host, configure HTTPS/origins/proxy limits, test persistence/restart, backups/retention and private-schema exposure. Docker was not installed here; no deployment/domain was created.
 
 Optional service failures do not count as learning failures and must never unlock a checkpoint. P2 retrieval, hints/transfer questions, instructors and other languages are deferred, as documented in the plan.
+
+## Latest local release and beginner rehearsal — 19 September 2026
+
+Supported release: **0.4.0**, local Ollama `qwen2.5-coder:7b`, FastAPI, SQLite and the existing React dashboard/sidebar. Only BeProgram Managed Ask AI is gated. Voice and GitHub publication are disabled; Solana is deferred. No paid-provider acceptance or public deployment is required for this edition.
+
+Previously recorded release evidence in `IMPLEMENTATION_PLAN.md`: 63 backend tests, 9 extension unit tests, 3 browser scenarios, site/sidebar builds and 6 exact-package VS Code host groups passed. These suites were not rerun during this rehearsal preparation. Actual-model evidence is retained in [final flows](release-review/final-flows.json), [beginner flow](release-review/final-beginner.json) and [misconception checks](release-review/final-misconceptions.json).
+
+The [frozen development evaluation](release-review/final/results.json) matched all 20 agent-authored labels, with recorded p95 5.36 seconds and cold maximum 14.531 seconds. This reused development set is not independent validation. Generated coding suggestions contained errors; passing automated flows does not establish reliable grading or suggestion quality.
+
+Checks performed during this preparation: `python -m scripts.doctor` passed all readiness checks, including backend/model availability and token acceptance without printing the token. VS Code lists BeProgram 0.4.0 as installed. The archive SHA-256 matches [package metadata](release-review/package.json): `77a81a87be62b91d02189e04d4072b34b03c3ba37e1912fb620dfde047f8cde2`. A fresh isolated multi-file demo was generated and requested to open in VS Code. No user checkpoint result was fabricated.
+
+**Still incomplete:** independent technical review of at least 20 representative explanations and a real person's sidebar rehearsal. The user can test clarity, navigation, waiting/retry behavior and history without certifying technical correctness. Do not treat beginner usability feedback as assessment-quality acceptance. See [the rehearsal guide](DEMO_REHEARSAL.md); the technical review worksheet remains available for a qualified reviewer.
+
+## Latest: 0.4.1 visible actions and explanation help — 19 September 2026
+
+- Added Managed Ask AI to the sidebar toolbar and passed-checkpoint screen, using the existing UI components. The action remains gated.
+- Added Give up and explain for unresolved questions in both sidebar and dashboard. It requests a beginner explanation of the frozen code through local Ollama, saves it separately from learner attempts, and preserves checkpoint status/version and the locked gate. The explanation reappears after reload. History identifies help viewed; a later answer is not described as unaided. This does not implement or certify a fresh transfer-question assessment.
+- Owner authorization, serial inference, cached repeat requests, output bounds, retry after model failure, project deletion and source retention apply. Explanation text expires with captured source; the help-viewed marker remains.
+- **65 backend tests, 9 extension unit tests, 3 browser scenarios and 6 exact-package VS Code host groups passed.** Browser coverage includes give-up, persistence after reload, gate remaining locked, and the visible success-screen Managed Ask AI button. TypeScript/site/sidebar builds pass; existing dependency deprecations and dashboard chunk-size warning remain. The narrow explanation panel screenshot was inspected.
+- [Actual-model explanation smoke](release-review/explanation-smoke.json) used synthetic capacity-check source and a disposable database. The explanation correctly described the comparison and equality boundary; the checkpoint remained pending and the gate unavailable. This single agent-inspected example does not establish independent model-quality acceptance.
+- Packaged and installed 0.4.1, SHA-256 `9801f1a4f15374226cde44007aa4ede4bd08291758142f378aaaeec71113e34b`; [package metadata](release-review/package.json) identifies the exact host-tested archive. Backend restarted and doctor passed. Existing user history was preserved. Reload the user's VS Code window to activate the installed extension update.
+
+Independent technical review and real user usability acceptance remain incomplete. The frozen 0.4.0 evaluation/worksheet is retained as historical evidence; it does not certify the new explanation feature.
+
+## Latest: 0.4.2 practice after explanation — 19 September 2026
+
+The user reported that the 0.4.1 experience worked well and explicitly selected practice after giving up. This is recorded as informal beginner usability feedback, not independent technical review or an observed completion of every acceptance step.
+
+**Behavior:** after Give up and explain, Try a practice question generates a concrete new scenario from the same frozen code. A versioned operation retains its question/reference solution without overwriting the original question or attempts. Only answers submitted in the practice stage can earn `passed_with_help`. Help viewed, old answers, duplicate generation, failed inference and stale submissions cannot unlock the gate. Practice feedback addresses mistakes while retaining the frozen scenario. History and the success screen show Demonstrated with help; historical 0.4.1 results are not rewritten.
+
+**Checks executed:** 76 backend tests, 10 extension unit tests, four browser scenarios and six exact-VSIX host groups passed. Coverage includes help prerequisite, owner isolation, stale versions/hash, invalid question rejection, failed generation/retry, restart, excluding original answers from practice grading, assisted-pass persistence, model-failure answer recovery, project deletion and guarded grade dimensions. Browser checks exercise both dashboard and sidebar practice through history and reload; narrow success and mobile assisted-history screenshots were inspected. TypeScript/site/sidebar builds pass. Existing dependency deprecations and dashboard chunk-size warning remain. An earlier backend test run overlapped frontend rebuilding and hit a transient missing-assets directory; the final run followed completion of the build.
+
+**Actual-model evidence and failures:** initial practice generation repeated or assessed the original question. A later attempt produced a false pass on “8 is greater than or equal to 10”; [the initial failure](release-review/practice-initial-failure.json) is retained. Subsequent attempts encountered malformed/incoherent output and overlong follow-ups; [format failures](release-review/practice-format-failures.json), [coherence failures](release-review/practice-coherence-failures.json) and [the earlier flow](release-review/practice-before-format-fix.json) remain historical evidence. The release uses a dedicated exercise schema with a reference solution created before learner answers. The practice model returns bounded correctness dimensions, gaps, feedback and learner quotations; application code permits pass only when every dimension is correct with no contradiction or gap. It retains the same practice question for retries. Normal unaided assessment behavior is preserved.
+
+The [final actual-model flow](release-review/practice-smoke.json) generated help and practice, rejected a wrong comparison, then saved the corrected explanation as `passed_with_help` and made the gate available. [Seven fixed practice regressions](release-review/practice-regressions.json) all matched agent-authored labels, including the previously accepted misconception, equality, correct reasoning and a vague answer. Rerun with `python -m scripts.check_practice_assessment`. These are narrow capacity-check development examples, not a held-out or independently reviewed quality estimate. Model-generated references, questions and feedback can still be incorrect.
+
+**Delivery:** installed 0.4.2, SHA-256 `32efc1d372d6e7fda3179bab377d737ca0416f2e932d4f9e6f9b40ff62b7c2ca`. [Package metadata](release-review/package.json) identifies the extracted archive and final host report. Backend restarted and doctor passed; token and user history were preserved. Reload VS Code to activate the update. Independent technical review and usability acceptance of the new practice step remain open. No paid service, voice, Solana, GitHub publication or public deployment was enabled.

@@ -17,11 +17,11 @@ Setup installs dependencies, builds the site/sidebar, creates `.env` only if abs
 
 For this existing workspace, the configuration has already been converted to local AI. On later launches, use `./scripts/run-local.ps1`. It starts the model server, then the backend at http://127.0.0.1:8000. Keep that backend terminal open.
 
-1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.0 reuses your saved token between projects and shows elapsed local inference time.
+1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.4.2 adds fresh practice after Give up and explain, while retaining visible Managed Ask AI buttons, saved-token reuse and elapsed local inference time.
 2. Open a trusted local Git project and click BeProgram in the Activity Bar.
 3. Connect using `LOCAL_DEV_TOKEN` from your ignored `.env`. This randomly generated local password is **not an API key**. The extension stores it in VS Code SecretStorage.
 4. Choose project scope (for this repository, try `apps/dashboard/src`), save a meaningful edit, review the source preview and approve capture.
-5. Answer the question, complete any follow-up and use Managed Ask AI after the persisted pass. History is also available in the dashboard.
+5. Answer the question, complete any follow-up and click Managed Ask AI after the persisted pass. If stuck, choose **Give up and explain** to read a local-model walkthrough, then **Try a practice question**. Apply the idea to the new example in your own words. Reading help does not unlock Managed Ask AI; a correct practice answer is saved as **Demonstrated with help**. History preserves the original question, help, practice question and submitted answers. Model feedback can still be incorrect.
 
 The model server runs separately in the background. To release its memory:
 

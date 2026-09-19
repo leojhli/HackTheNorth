@@ -92,3 +92,17 @@ test('state posted to the webview never includes stored auth token or API client
   await controller.execute('disconnect');
   assert.equal(controller.state.connected,false);assert.equal(controller.checkpoint,null);assert.equal(controller.draft,null);
 });
+
+test('practice sends current checkpoint binding, preserves draft on failure, clears it after success',async()=>{
+  const {controller}=fixture();controller.draft={...draft};controller.refresh=async()=>{};
+  let requested;
+  controller.request=async(route,method,body)=>{requested={route,method,body};throw Error('Model unavailable');};
+  await assert.rejects(controller.execute('practice'),/Model unavailable/);
+  assert.equal(controller.draft.text,draft.text);
+  assert.deepEqual(requested.body,{version:1,snapshot_hash:cp.snapshot_hash});
+  controller.request=async()=>({...cp,version:2,practice_question:{question:'New question'}});
+  await controller.execute('practice');
+  assert.equal(controller.checkpoint.version,2);assert.equal(controller.draft,null);
+  assert(validateMessage({id:'practice-1',action:'practice'}));
+  assert(!validateMessage({id:'practice-2',action:'practice',payload:{passed:true}}));
+});

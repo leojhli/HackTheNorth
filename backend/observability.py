@@ -16,7 +16,7 @@ local_logger = logging.getLogger('beprogram.lifecycle')
 local_logger.propagate = False
 local_logger.setLevel(logging.INFO)
 OPERATIONS = {'change_filter_and_question', 'answer_evaluation_and_persistence', 'gate_reconciliation',
-              'managed_ask', 'pr_import', 'pr_publication', 'receipt_issuance', 'speech_playback', 'transcription', 'evaluation', 'local_inference'}
+              'managed_ask', 'checkpoint_explanation', 'practice_question', 'pr_import', 'pr_publication', 'receipt_issuance', 'speech_playback', 'transcription', 'evaluation', 'local_inference'}
 CATEGORIES = {'none', 'unexpected', 'invalid_local_response', 'ungrounded_local_pass', 'local_model_timeout',
               'rate_limited', 'operation_busy', 'invalid_assessment', 'invalid_evaluation', 'stale_version',
               'unauthorized', 'gate_locked', 'context_expired', 'not_answerable', 'not_found',

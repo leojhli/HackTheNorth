@@ -37,12 +37,13 @@ export default function SidebarApp(){
   const action=(name:string)=>{setLocalError('');void send(name).catch(e=>setLocalError(e.message))}
   if(!state)return <main className="min-h-screen bg-canvas p-5 text-primary"><p role="status">Loading BeProgram…</p>{localError&&<InlineNotice kind="error">{localError}<Button variant="text" onClick={()=>action('ready')}>Reconnect</Button></InlineNotice>}</main>
   const cp=state.checkpoint
+  const stageAttempts=cp?.attempts.filter(a=>!cp.practice_started_version||a.version>=cp.practice_started_version)||[]
   const working=state.busy&&!['ready','refresh'].includes(state.operation||'')
   let phase:Phase=!state.session?'welcome':!cp||cp.status==='skipped'?'active':passed(cp)?'verified':cp.status==='unavailable'||!cp.question?'error':cp.status==='evaluating'?'evaluating':cp.status==='needs_followup'?'followup':'checkpoint'
   if(state.session && mode==='active')phase='active'
   if(cp&&!passed(cp)&&mode==='paused')phase='paused'
   if(state.operation==='capture')phase='analyzing'
-  if(cp&&(state.operation==='answer'||state.operation==='retry'))phase=cp.attempts.some(a=>a.evaluation?.decision==='follow_up')?'followup-evaluating':'evaluating'
+  if(cp&&(state.operation==='answer'||state.operation==='retry'))phase=stageAttempts.some(a=>a.evaluation?.decision==='follow_up')?'followup-evaluating':'evaluating'
   const updateDraft=(value:string)=>{
     setText(value)
     if(cp)void send('draft',{checkpointId:cp.id,version:cp.version,snapshotHash:cp.snapshot_hash,text:value}).catch(e=>setLocalError(e.message))
@@ -53,6 +54,8 @@ export default function SidebarApp(){
     void send('answer',{checkpointId:cp.id,version:cp.version,snapshotHash:cp.snapshot_hash,text}).catch(e=>setLocalError(e.message))
   }
   const actions:ExtActions={
+    startPractice:()=>{setMode('checkpoint');action('practice')},
+    giveUp:cp?.question?.decision==='assess' ? ()=>{setMode('checkpoint');action('explain')} : undefined,
     connectAccount:()=>action('connect'),continueSetup:()=>action('connect'),startSession:()=>action('connect'),cancelSetup:()=>setMode('active'),
     triggerAiRequest:()=>action('ask'),reviewChanges:()=>{setMode('checkpoint');action('capture')},openCheckpoint:()=>setMode('checkpoint'),
     keepEditing:()=>setMode('active'),submitInitial:submit,submitFollowup:submit,continueCoding:()=>setMode('active'),
@@ -61,7 +64,7 @@ export default function SidebarApp(){
     openHistory:()=>action('history'),openSettings:()=>action('settings'),createReceipt:()=>action('receipt')
   }
   const s={...initialExtensionState,phase,accountConnected:state.connected,connection:state.connected?'connected' as const:'disconnected' as const,
-    gate:state.gate?.available?'available' as const:'paused' as const,passed:!!cp&&passed(cp),initialDraft:phase.startsWith('followup')?cp?.attempts[0]?.answer||'':text,followupDraft:text,showPausedRequestNotice:!!state.session&&!state.gate?.available}
+    gate:state.gate?.available?'available' as const:'paused' as const,passed:!!cp&&passed(cp),initialDraft:phase.startsWith('followup')?stageAttempts[0]?.answer||'':text,followupDraft:text,showPausedRequestNotice:!!state.session&&!state.gate?.available}
   const fx=productData(state.project,state.session,cp,state.history,state.config)
   // Webview microphone permissions are not a verified capability. Optional voice
   // stays on the website; the complete text checkpoint is local to this sidebar.
@@ -70,6 +73,7 @@ export default function SidebarApp(){
   return <ProductContext.Provider value={fx}><main className={(light?'light ':'dark ')+'flex min-h-screen flex-col bg-panel text-primary'}>
     <nav aria-label="Sidebar actions" className="flex flex-wrap items-center gap-3 border-b border-subtle px-4 py-2 text-[12px] text-secondary">
       <button disabled={state.busy} onClick={()=>action('refresh')}>Refresh</button>
+      {state.session&&<button disabled={state.busy||!state.gate?.available} title={state.gate?.available?'Ask the local coding assistant':'Complete the checkpoint to unlock Managed Ask AI'} onClick={()=>action('ask')}>Managed Ask AI</button>}
       <button disabled={state.busy} onClick={()=>action('history')}>Learning history ↗</button>
       {state.connected&&<button disabled={state.busy} onClick={()=>action('disconnect')} className="ml-auto">Disconnect</button>}
     </nav>

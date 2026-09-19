@@ -34,7 +34,27 @@ The story: BeProgram asks a developer to explain a meaningful saved code change,
 - Refresh/reopen once during rehearsal to check saved state. Confirm that a trivial whitespace edit does not trigger a new question.
 - Remaining limitations: local model judgment needs human validation, local-only deployment, synthetic test cases, no universal assistant lock, no voice or PR publication in this edition.
 
-## Human review before the event
+## Beginner usability rehearsal — next step
+
+Technical review remains incomplete. You do not need to judge whether the model's coding advice is correct to try the interface.
+
+1. In the generated folder, connect BeProgram and choose scope `src`. The existing saved capacity change is ready to review; no extra edit is needed for this first checkpoint.
+2. Review and approve the preview, read the generated question and answer in your own words. Note anything confusing, including where to click or whether processing appears stuck.
+3. If there is a follow-up, try answering it. If you cannot understand it, record that and stop; a pass is not required for useful usability feedback.
+4. After a pass, try Managed Ask AI and open history. Check whether you can find your question and submitted explanation. Generated advice can be incorrect.
+5. Report what you tried, what appeared, and what was confusing. Do not share the token or `.env` contents. This rehearsal is only complete once a person actually performs it.
+
+For a later exercise, reject negative guest counts in `src/canJoin.js` while keeping its capacity check. Complete the first checkpoint before starting that edit.
+
+### Practice after giving up (0.4.2)
+
+On an unresolved checkpoint, choose **Give up and explain**, then read the saved walkthrough. Choose **Try a practice question** when ready. Explain the new scenario in your own words. A wrong or incomplete answer keeps the same practice question open with feedback; a successful answer shows **Demonstrated with help** and enables Managed Ask AI. History keeps the original question and attempts alongside the explanation and practice question. Reload once to check that the practice state remains available. Reading the explanation alone never passes a checkpoint.
+
+The user reported that the 0.4.1 flow worked well. The new practice flow still needs their usability feedback. Neither report substitutes for independent technical review.
+
+## Independent technical review — still incomplete
+
+This is separate from beginner usability testing. A reviewer comfortable judging the code and explanations should complete it; the current user should not guess or certify answers they cannot assess.
 
 Open `docs/release-review/HUMAN_REVIEW.html` in your browser. For each of 20 examples:
 

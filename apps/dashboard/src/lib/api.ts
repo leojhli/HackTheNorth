@@ -4,9 +4,11 @@ export type Session = { id: string; project_id: string; status: string; created:
 export type Evaluation = { model?: string; decision: 'pass' | 'follow_up' | 'unable_to_assess'; feedback: string; next_question: string | null; gaps: string[] }
 export type Attempt = { id: string; key: string; answer: string; modality: string; state: string; evaluation: Evaluation | null; version: number }
 export type SourceFile = { path: string; edits: { before_start: number; after_start: number; removed: string[]; added: string[] }[]; lines: { number: number; text: string }[] }
-export type Checkpoint = { id: string; project_id: string; session_id: string; status: string; version: number; snapshot_hash: string;
+export type CheckpointQuestion = { decision: string; concept: string; question: string; reason: string; rubric: string[] }
+export type Checkpoint = { explanation_viewed?: boolean; learning_explanation?: string | null; id: string; project_id: string; session_id: string; status: string; version: number; snapshot_hash: string;
   snapshot: { files: SourceFile[]; partial: boolean; provenance: string; pr_import_id?: string; expired?: boolean };
-  question: { decision: string; concept: string; question: string; reason: string; rubric: string[] } | null; current_question: string | null;
+  question: CheckpointQuestion | null; current_question: string | null;
+  practice_question?: CheckpointQuestion | null; practice_started_version?: number | null;
   attempts: Attempt[]; created: number; passed_at: number | null; model: string; last_error: string | null; can_pause: boolean }
 export type Gate = { available: boolean; checkpoint_id: string | null; reason: string }
 

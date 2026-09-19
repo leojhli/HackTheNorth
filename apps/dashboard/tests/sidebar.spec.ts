@@ -8,6 +8,7 @@ const require=createRequire(import.meta.url)
 const {Controller}=require('../../vscode-extension/controller.cjs')
 const token='automated-test-only-token-not-a-real-secret'
 const good='The query structure is fixed. The driver binds email as data, so quotes in email cannot change SQL syntax. Input validation is still needed for business rules.'
+const practiceGood="O'Reilly stays a single bound email value. The driver passes it as data for $1, so the apostrophe cannot change the SQL query structure. This does not validate whether the email is allowed."
 const before='export async function findUser(db, email) {\n  return db.query('+String.fromCharCode(96)+'SELECT * FROM users WHERE email = "'+'$'+'{email}"'+String.fromCharCode(96)+');\n}'
 const after='export async function findUser(db, email) {\n  return db.query("SELECT * FROM users WHERE email = $1", [email]);\n}'
 
@@ -26,7 +27,7 @@ test('sidebar UI: saved capture, draft restoration, follow-up, pass and next man
   const documents:{content:string}[]=[];let openedBrowser=false
   const vscode={workspace:{isTrusted:true,workspaceFolders:[{uri:{fsPath:root,scheme:'file'}}],getConfiguration:()=>({get:()=> baseURL}),
     openTextDocument:async(doc:{content:string})=>{documents.push(doc);return doc}},
-    window:{showTextDocument:async()=>{},showInformationMessage:async()=> 'Approve capture',showInputBox:async()=> 'Write a safe helper'},
+    window:{showTextDocument:async()=>{},showInformationMessage:async(_message:string,_options:unknown,...choices:string[])=> choices[0],showInputBox:async()=> 'Write a safe helper'},
     env:{openExternal:async()=>{openedBrowser=true}},Uri:{parse:(value:string)=>value}}
   const context={workspaceState:{get:(key:string)=>memory.get(key),update:async(key:string,value:unknown)=>memory.set(key,value)},
     secrets:{get:async()=>token,delete:async()=>{}}}
@@ -70,13 +71,28 @@ test('sidebar UI: saved capture, draft restoration, follow-up, pass and next man
     await expect(page.getByRole('button',{name:'Resume checkpoint',exact:true})).toBeVisible()
     expect(controller.state.gate.available).toBe(false)
     await page.getByRole('button',{name:'Resume checkpoint',exact:true}).click()
-    await page.getByLabel('Your follow-up answer').fill(good)
+    await expect(page.getByRole('button',{name:'Managed Ask AI',exact:true})).toBeDisabled()
+    await page.getByRole('button',{name:'Give up and explain',exact:true}).click()
+    await expect(page.getByRole('region',{name:'Code explanation'})).toContainText('driver binds email as data')
+    expect(controller.state.gate.available).toBe(false)
+    await page.reload()
+    await expect(page.getByRole('region',{name:'Code explanation'})).toBeVisible()
+    await page.screenshot({path:'test-results/vscode-sidebar-explanation.png',fullPage:true,animations:'disabled'})
+    await page.getByRole('button',{name:'Try a practice question',exact:true}).click()
+    await expect(page.getByRole('heading',{name:'Apply what you learned'})).toBeVisible()
+    await expect(page.getByLabel('Your explanation',{exact:true})).toHaveValue('')
+    await page.reload()
+    await expect(page.getByText("If email contains O'Reilly, how is its apostrophe handled by this query and why?",{exact:true})).toBeVisible()
+    await page.getByLabel('Your explanation',{exact:true}).fill(good)
+    await page.getByRole('button',{name:'Submit explanation',exact:true}).click()
+    await expect(page.getByRole('heading',{name:'One detail to clarify'})).toBeVisible()
+    expect(controller.state.gate.available).toBe(false)
+    await page.getByLabel('Your follow-up answer').fill(practiceGood)
     await page.getByRole('button',{name:'Submit follow-up',exact:true}).click()
-    await expect(page.getByRole('heading',{name:'Understanding verified'})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Demonstrated with help'})).toBeVisible()
     await expect(page.getByText('Saved to your learning history.')).toBeVisible()
     await page.screenshot({path:'test-results/vscode-sidebar-verified.png',fullPage:true,animations:'disabled'})
-    await page.getByRole('button',{name:'Continue coding',exact:true}).click()
-    await page.getByRole('button',{name:'Send AI request',exact:true}).click()
+    await page.getByRole('button',{name:'Managed Ask AI',exact:true}).last().click()
     await expect(page.getByText('AI response opened in the editor. Capture resulting saved changes before the next request.')).toBeVisible()
     expect(documents.some(d=>d.content==='Test-only coding assistant response.')).toBeTruthy()
     expect(openedBrowser).toBe(false)

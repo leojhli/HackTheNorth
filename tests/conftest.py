@@ -8,6 +8,7 @@ from backend.errors import AppError
 
 BEFORE = 'export async function findUser(db, email) {\n  return db.query(`SELECT * FROM users WHERE email = "${email}"`);\n}'
 AFTER = 'export async function findUser(db, email) {\n  return db.query("SELECT * FROM users WHERE email = $1", [email]);\n}'
+PRACTICE_GOOD = "O'Reilly stays a single bound email value. The driver passes it as data for $1, so the apostrophe cannot change the SQL query structure. This does not validate whether the email is allowed."
 
 
 class FixtureAssessor:
@@ -33,6 +34,8 @@ class FixtureAssessor:
         if self.fail:
             raise AppError('provider_timeout', 'Test provider timed out.', 503, True)
         passed = answer == 'The query structure is fixed. The driver binds email as data, so quotes in email cannot change SQL syntax. Input validation is still needed for business rules.'
+        if getattr(checkpoint, 'practice', False):
+            passed = answer == PRACTICE_GOOD
         return Evaluation(decision='pass' if passed else 'follow_up', intent_correct=True,
             mechanism_correct=passed, reasoning_correct=passed, central_contradiction=False,
             feedback='You explained structure, binding and the limit.' if passed else 'Explain how the value reaches the database.',
@@ -41,6 +44,15 @@ class FixtureAssessor:
     def ask(self, prompt):
         self.ask_calls += 1
         return 'Test-only coding assistant response.'
+
+    def explain(self, checkpoint):
+        if self.fail:
+            raise AppError('provider_timeout', 'Test provider timed out.', 503, True)
+        return 'Test-only explanation: the driver binds email as data instead of SQL syntax.'
+
+    def practice(self, checkpoint, explanation):
+        question = self.question(checkpoint.snapshot, [])
+        return question.model_copy(update={'question': "If email contains O'Reilly, how is its apostrophe handled by this query and why?"})
 
 
 @pytest.fixture

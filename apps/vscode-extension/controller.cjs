@@ -184,6 +184,25 @@ class Controller {
     this.state.busy=true;this.state.operation=action;this.state.error='';this.state.notice='';this.emit();
     try {
       switch(action) {
+        case 'practice': {
+          const cp=this.checkpoint;
+          if(!cp)throw Error('Open a checkpoint first.');
+          this.checkpoint=await this.request('/v1/checkpoints/'+cp.id+'/practice','POST',{version:cp.version,snapshot_hash:cp.snapshot_hash});
+          this.draft=null;this.answerIntent=null;
+          await this.refresh();
+          this.state.notice='Fresh practice question ready. Explain this example in your own words; a passing answer will be labeled demonstrated with help.';
+          break;
+        }
+        case 'explain': {
+          if(!this.checkpoint)throw Error('Open a checkpoint first.');
+          const id=this.checkpoint.id;
+          const consent=await this.vscode.window.showInformationMessage('Read an explanation of this saved change? This does not pass the checkpoint or unlock Managed Ask AI. You can return to the question later.',{modal:true},'Give up and explain');
+          if(consent!=='Give up and explain')break;
+          this.checkpoint=await this.request('/v1/checkpoints/'+id+'/explanation','POST');
+          await this.refresh();
+          this.state.notice='Explanation saved. This checkpoint remains unresolved; you can return to it when ready.';
+          break;
+        }
         case 'ready': if(!this.active)await this.restore();await this.refresh();break;
         case 'refresh': await this.refresh();break;
         case 'connect': await this.connect();break;

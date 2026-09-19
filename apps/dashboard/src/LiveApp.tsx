@@ -60,9 +60,10 @@ export default function LiveApp() {
     if (!next) { patch({ phase: 'active', passed: false, gate: nextGate?.available ? 'available' : 'paused', showPausedRequestNotice: false }); return }
     const phase: Phase = passed(next) ? 'verified' : next.status === 'unavailable' || !next.question ? 'error' : next.status === 'evaluating' ? 'evaluating' : next.status === 'needs_followup' ? 'followup' : 'checkpoint'
     const retry = next.attempts.find(a=>a.version===next.version && a.state!=='completed')
+    const stageAttempts = next.attempts.filter(a=>!next.practice_started_version||a.version>=next.practice_started_version)
     if(retry) answerKey.current={text:retry.answer,version:retry.version,key:retry.key}
     answerModality.current = retry?.modality || 'text'
-    patch({ phase, passed: passed(next), gate: nextGate?.available ? 'available' : 'paused', initialDraft: next.attempts[0]?.answer || '', followupDraft: retry && next.attempts.length>1 ? retry.answer : '', showPausedRequestNotice: !passed(next) })
+    patch({ phase, passed: passed(next), gate: nextGate?.available ? 'available' : 'paused', initialDraft: retry?.answer || stageAttempts[0]?.answer || '', followupDraft: retry && stageAttempts.length>1 ? retry.answer : '', showPausedRequestNotice: !passed(next) })
   }
   async function refresh(open = false) {
     const [ps, sessions, hs, freshConfig] = await Promise.all([api<Project[]>('/v1/projects'), api<Session[]>('/v1/sessions'), api<Checkpoint[]>('/v1/history'), api<Config>('/v1/config')])
@@ -102,6 +103,8 @@ export default function LiveApp() {
     } catch(e) { patch({phase: 'error'}); throw e }
   }
   const a: ExtActions = {
+    startPractice:()=>void run(async()=>{if(!cp)return;const next=await api<Checkpoint>(`/v1/checkpoints/${cp.id}/practice`,'POST',{version:cp.version,snapshot_hash:cp.snapshot_hash});answerKey.current=null;showCheckpoint(next,gate||undefined)}),
+    giveUp: cp?.question?.decision==='assess' ? () => { if(window.confirm('Read an explanation? This does not pass the checkpoint or unlock Managed Ask AI.')) void run(async()=>{const next=await api<Checkpoint>(`/v1/checkpoints/${cp.id}/explanation`,'POST');showCheckpoint(next,gate||undefined)}) } : undefined,
     connectAccount: () => {}, continueSetup: () => { if (project) patch({phase:'scope'}); else setDialog('project') },
     startSession: () => void run(async () => { if (!project) return; const next = await api<Session>('/v1/sessions','POST',{project_id:project.id}); setSession(next); const g = await api<Gate>(`/v1/sessions/${next.id}/gate`); setGate(g); showCheckpoint(g.checkpoint_id ? await api(`/v1/checkpoints/${g.checkpoint_id}`) : null,g) }),
     cancelSetup: () => patch({phase:'welcome'}), triggerAiRequest: () => { setDialog('ask'); setAiResponse('') },

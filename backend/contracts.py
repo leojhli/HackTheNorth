@@ -41,10 +41,13 @@ class ChangeInput(Strict):
     pr_import_id: str | None = None
 
 
-class AnswerInput(Strict):
-    answer: str = Field(min_length=3, max_length=8000)
+class CheckpointBinding(Strict):
     version: int = Field(ge=1)
     snapshot_hash: str = Field(pattern=r'^[a-f0-9]{64}$')
+
+
+class AnswerInput(CheckpointBinding):
+    answer: str = Field(min_length=3, max_length=8000)
     idempotency_key: str = Field(min_length=8, max_length=100)
     modality: Literal['text', 'reviewed_voice'] = 'text'
 
