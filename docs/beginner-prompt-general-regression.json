@@ -1,0 +1,62 @@
+{
+  "provider": "local Ollama, actual inference",
+  "cases": [
+    {
+      "name": "SQL bound parameter",
+      "question": {
+        "decision": "assess",
+        "concept": "Parameterized queries",
+        "question": "What is the benefit of using parameterized queries instead of string interpolation in this code?",
+        "reason": "The code has been updated to use parameterized queries instead of string interpolation. The old code used string interpolation to construct the SQL query, which could lead to SQL injection vulnerabilities. The new code uses parameterized queries, which are more secure and prevent SQL injection attacks.",
+        "rubric": [
+          "The code now uses parameterized queries, which prevent SQL injection attacks.",
+          "The new code uses the `$1` placeholder and passes the `email` parameter as an array, which is a correct implementation of parameterized queries.",
+          "The old code used string interpolation, which could lead to SQL injection vulnerabilities."
+        ],
+        "evidence": [
+          {
+            "path": "src/example.ts",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "return db.query(\"SELECT * FROM users WHERE email = $1\", [email]);"
+          }
+        ],
+        "important_distinct_use": true
+      },
+      "attempts": []
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/v1/config",
+      "status": 200,
+      "seconds": 0.06
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.01
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/521732d5-dbb1-492d-984e-484b890ed6b7/changes",
+      "status": 200,
+      "seconds": 4.88
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/aab40b5d-55ae-487d-92de-7d28b0a28bc8/answers",
+      "status": 503,
+      "seconds": 3.75
+    }
+  ],
+  "model": "qwen2.5-coder:7b"
+}

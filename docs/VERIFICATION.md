@@ -1,3 +1,13 @@
+# Beginner demo delivery (19 September 2026)
+
+- New generator creates a complete, dependency-free Campus Game Night folder with HTML, CSS, event data, button logic, a small capacity helper, localhost preview launcher and plain-language START_HERE guide. Final folder: `.tools/demo-workspaces/campus-events-55e0e9c0`. Only `src/canJoin.js` differs from its committed baseline: a one-line guard refuses a full room. Capture verified exactly that one file; older folders/history remain untouched.
+- Final browser check passed: 0/4/5/6 guests at capacity 5 and zero-capacity boundary; add/remove/reset; disabled full button; 1280px and 390px layouts; no overflow or browser errors. Screenshots: `screenshots/beginner-demo-desktop.png`, `screenshots/beginner-demo-mobile.png`.
+- Final **49 backend tests passed** (5.04 seconds, two existing warnings). The BeProgram frontend and extension were unchanged; previous app browser/extension tests were not rerun as part of this fixture change.
+- Actual final demo flow passed question, vague-answer follow-up, complete explanation, managed request, history and app recreation. Inference calls: 4.59/4.55/3.89/2.25 seconds. `beginner-demo-result.json` retains the full output. The question asks what the added if-statement checks; the passing feedback correctly explains the capacity boundary.
+- This is not a clean model-quality pass: its reason imprecisely says "exceeds" rather than "reaches or exceeds", vague-answer flags call incompleteness a contradiction, and its generated Managed Ask AI test incorrectly says `canJoin(0, 0)` returns true. The browser check verifies false. No incorrect AI suggestion is applied automatically.
+- Earlier comparison/prompt trials and an evidence-span failure are retained. Experimental global prompt/schema changes were entirely reverted after broader verification failed; the final assessor's SHA256 matches the prior 20-case report exactly. A fresh general smoke on the restored assessor still stopped at a valid SQL answer receiving an unfair follow-up (`local-model-smoke.json`). Previous successful evidence remains in `local-model-smoke-before-beginner-prompts.json`. Do not claim all actual-model examples passed this turn or that the underlying quality problem is solved.
+- The final local backend and demo preview were restarted on 8000 and 8010. No API costs, new services, canned questions, seeded passes or automatic uploads were introduced.
+
 # Focused demo and assessment review (19 September 2026)
 
 This update supersedes the older counts and Solana acceptance target below.

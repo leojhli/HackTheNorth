@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from backend.config import Settings
 from backend.db import Database
 from backend.main import create_app
+from scripts.prepare_demo import DEMO_CASE
 
 CASES = [
     {
@@ -38,13 +39,7 @@ CASES = [
 
 
 def main(demo=False):
-    selected = CASES if not demo else [{
-        'name': 'Demo: unique tags',
-        'before': 'export function uniqueTags(tags) {\n  return [...tags];\n}\n',
-        'after': 'export function uniqueTags(tags) {\n  return [...new Set(tags)];\n}\n',
-        'weak': 'It handles duplicates better.',
-        'good': 'The Set removes repeated tag values, then spread converts the Set back into an array. It preserves the first occurrence order rather than sorting, and does not mutate tags. String equality is case-sensitive, so Bug and bug stay distinct unless we normalize them.'
-    }]
+    selected = CASES if not demo else [DEMO_CASE]
     report = {'provider': 'local Ollama, actual inference', 'cases': [], 'requests': []}
     with tempfile.TemporaryDirectory(prefix='beprogram-local-live-') as directory:
         config = Settings(database_url='sqlite:///' + str(Path(directory) / 'smoke.db'),
@@ -57,6 +52,8 @@ def main(demo=False):
             began = time.monotonic()
             response = client.request(method, path, json=body)
             entry = {'method': method, 'path': path, 'status': response.status_code, 'seconds': round(time.monotonic() - began, 2)}
+            if response.status_code != 200:
+                entry['error'] = response.json().get('code', 'http_error')
             report['requests'].append(entry)
             print(json.dumps(entry), flush=True)
             assert response.status_code == 200, response.text
@@ -66,7 +63,7 @@ def main(demo=False):
             for index, case in enumerate(selected):
                 project = request('POST', '/v1/projects', {'name': case['name'], 'scope': ['src']})
                 session = request('POST', '/v1/sessions', {'project_id': project['id']})
-                capture = {'files': [{'path': 'src/example.ts', 'before': case['before'], 'after': case['after']}],
+                capture = {'files': [{'path': case.get('path', 'src/example.ts'), 'before': case['before'], 'after': case['after']}],
                            'provenance': 'user_reported_manual', 'idempotency_key': f'live-change-{index}'}
                 cp = request('POST', f"/v1/sessions/{session['id']}/changes", capture)['checkpoint']
                 assert cp['status'] == 'pending', cp
@@ -94,11 +91,11 @@ def main(demo=False):
             report['passed'] = True
         finally:
             database.engine.dispose()
-            Path('docs/demo-rehearsal-result.json' if demo else 'docs/local-model-smoke.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+            Path('docs/beginner-demo-result.json' if demo else 'docs/local-model-smoke.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--demo', action='store_true', help='Rehearse the isolated unique-tags demo through the actual API/model.')
+    parser.add_argument('--demo', action='store_true', help='Rehearse the beginner event-capacity demo through the actual API/model.')
     main(parser.parse_args().demo)

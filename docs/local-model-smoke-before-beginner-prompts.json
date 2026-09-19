@@ -1,0 +1,402 @@
+{
+  "provider": "local Ollama, actual inference",
+  "cases": [
+    {
+      "name": "SQL bound parameter",
+      "question": {
+        "decision": "assess",
+        "concept": "Parameterized Queries",
+        "question": "What is the purpose of using parameterized queries in the updated code, and how does it differ from the previous implementation?",
+        "reason": "The change from string interpolation to parameterized queries is a significant security and performance improvement. It prevents SQL injection attacks and can improve query performance.",
+        "rubric": [
+          "The code now uses parameterized queries to prevent SQL injection.",
+          "The use of parameterized queries improves query performance by allowing the database to cache the query plan.",
+          "The previous implementation was vulnerable to SQL injection attacks."
+        ],
+        "evidence": [
+          {
+            "path": "src/example.ts",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "return db.query(\"SELECT * FROM users WHERE email = $1\", [email]);"
+          }
+        ],
+        "important_distinct_use": true
+      },
+      "attempts": [
+        {
+          "id": "c59129a3-eae7-4700-8bf7-7433a2005307",
+          "checkpoint_id": "dd4759f3-b398-4577-a340-cdb8e0c87449",
+          "key": "live-weak-0",
+          "request_hash": "6472247dbd882ff4e8579dc3d9ad0552850ffa31dfc6d8bb01ff8d04fac56edb",
+          "version": 1,
+          "answer": "It makes the database safer.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "follow_up",
+            "intent_correct": false,
+            "mechanism_correct": false,
+            "reasoning_correct": false,
+            "central_contradiction": false,
+            "feedback": "The answer does not address the purpose of parameterized queries or how they differ from the previous implementation. It only mentions that the database becomes safer, which is a partial correct statement but lacks the necessary details.",
+            "evidence": [
+              "return db.query(\"SELECT * FROM users WHERE email = $1\", [email]);"
+            ],
+            "gaps": [
+              "The answer does not explain the security benefits of parameterized queries.",
+              "It does not mention how parameterized queries differ from the previous implementation.",
+              "It does not discuss the performance improvements or caching benefits."
+            ],
+            "next_question": "Can you explain the security benefits of using parameterized queries and how they differ from the previous implementation using string interpolation?",
+            "answer_quotes": [],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789804409.6060846
+        },
+        {
+          "id": "23842840-b8b2-4aee-b7f6-9b9b9f301e26",
+          "checkpoint_id": "dd4759f3-b398-4577-a340-cdb8e0c87449",
+          "key": "live-good-0",
+          "request_hash": "1d028fd0ce88158d7ac96a6b659acb0becae77dac5449fb3f52200d7b94c5dd5",
+          "version": 2,
+          "answer": "The SQL structure is fixed with the $1 placeholder. The database driver binds email separately as a data value, so quotes or SQL keywords in email cannot alter query syntax. This prevents SQL injection at this parameter, but business validation and authorization are still needed. This assumes db.query supports PostgreSQL-style bound parameters.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "pass",
+            "intent_correct": true,
+            "mechanism_correct": true,
+            "reasoning_correct": true,
+            "central_contradiction": false,
+            "feedback": "Your explanation correctly identifies the security benefits of parameterized queries and how they differ from the previous implementation. You accurately describe how the $1 placeholder prevents SQL injection and that additional validation and authorization are still necessary. Your answer also correctly notes the assumption about the database driver's support for PostgreSQL-style bound parameters.",
+            "evidence": [
+              "return db.query(\"SELECT * FROM users WHERE email = $1\", [email]);"
+            ],
+            "gaps": [],
+            "next_question": null,
+            "answer_quotes": [
+              "It makes the database safer.",
+              "The SQL structure is fixed with the $1 placeholder. The database driver binds email separately as a data value, so quotes or SQL keywords in email cannot alter query syntax. This prevents SQL injection at this parameter, but business validation and authorization are still needed.",
+              "This assumes db.query supports PostgreSQL-style bound parameters."
+            ],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789804413.3352706
+        }
+      ],
+      "managed_reply": "A short edge-case test for this code could be:\n\n```javascript\nconst dbMock = {\n  query: jest.fn()\n};\n\nfindUser(dbMock, null);\n\nexpect(dbMock.query).not.toHaveBeenCalled();\n```\n\n### Explanation:\n- **Edge Case**: Passing `null` as the `email` parameter.\n- **Test**: The function should not call `db.query` if `email` is `null`.\n- **Expectation**: The `query` method of the `dbMock` object should not be called."
+    },
+    {
+      "name": "Null input guard",
+      "question": {
+        "decision": "assess",
+        "concept": "Conditional return for null user",
+        "question": "What is the purpose of the added conditional return statement in the `displayName` function?",
+        "reason": "The added line checks if the `user` parameter is null and returns 'Guest' if it is. This ensures that the function does not attempt to access properties of a null object, which could lead to a runtime error.",
+        "rubric": [
+          "The function now handles the case where the `user` parameter is null.",
+          "The conditional return statement is correctly placed at the beginning of the function to prevent further execution if `user` is null.",
+          "The function now returns 'Guest' when `user` is null, providing a default value."
+        ],
+        "evidence": [
+          {
+            "path": "src/example.ts",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "if (user == null) return \"Guest\";"
+          }
+        ],
+        "important_distinct_use": false
+      },
+      "attempts": [
+        {
+          "id": "e0afac99-8fb2-4ba4-b127-232b86db1850",
+          "checkpoint_id": "d58fa419-cb59-44d4-b909-0e8f6bb8ebe7",
+          "key": "live-good-1",
+          "request_hash": "f54f66ed69d12e80ef5e8a8146b90067777e2972fbd238eac31f635b83ef7292",
+          "version": 1,
+          "answer": "The guard returns Guest before reading user.name when user is null or undefined: loose equality to null matches both. This prevents dereferencing a missing user and keeps trimming for existing users. It does not validate user.name: a missing, null or non-string name can still throw. Guest is a display fallback, not proof that a user is authenticated.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "pass",
+            "intent_correct": true,
+            "mechanism_correct": true,
+            "reasoning_correct": true,
+            "central_contradiction": false,
+            "feedback": "The learner correctly identified the purpose of the added conditional return statement, explaining that it prevents dereferencing a null object and provides a default value of 'Guest'. The reasoning is clear and aligns with the code's behavior.",
+            "evidence": [
+              "if (user == null) return \"Guest\";"
+            ],
+            "gaps": [],
+            "next_question": null,
+            "answer_quotes": [
+              "The guard returns Guest before reading user.name when user is null or undefined: loose equality to null matches both. This prevents dereferencing a missing user and keeps trimming for existing users.",
+              "It does not validate user.name: a missing, null or non-string name can still throw.",
+              "Guest is a display fallback, not proof that a user is authenticated."
+            ],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789804424.9517496
+        }
+      ],
+      "managed_reply": "A short edge-case test for the `displayName` function could be:\n\n```javascript\nconsole.log(displayName(null)); // Expected output: \"Guest\"\n```\n\nThis test checks the behavior of the function when the `user` parameter is `null`. The expected output is `\"Guest\"`, as the function should handle this edge case gracefully."
+    },
+    {
+      "name": "Nonmutating sort",
+      "question": {
+        "decision": "assess",
+        "concept": "Array sorting with a copy",
+        "question": "What is the purpose of creating a copy of the `scores` array before sorting it?",
+        "reason": "The change involves sorting a copy of the `scores` array instead of the original array. This is done by using the spread operator `[...scores]` before calling the `sort` method.",
+        "rubric": [
+          "The code sorts an array of scores.",
+          "A copy of the scores array is created before sorting to avoid mutating the original array.",
+          "This approach ensures that the original array remains unchanged."
+        ],
+        "evidence": [
+          {
+            "path": "src/example.ts",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "return [...scores].sort((a, b) => a - b);"
+          }
+        ],
+        "important_distinct_use": false
+      },
+      "attempts": [
+        {
+          "id": "38b448a3-773c-481b-af5f-48310fe668be",
+          "checkpoint_id": "851ca9cf-0715-439f-810e-a84917c6ab0d",
+          "key": "live-weak-2",
+          "request_hash": "9bd94c39c4e1e73857aead84f619a72e849b9aaaa77946558f75b1fcc48fd120",
+          "version": 1,
+          "answer": "It sorts better.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "follow_up",
+            "intent_correct": false,
+            "mechanism_correct": false,
+            "reasoning_correct": false,
+            "central_contradiction": false,
+            "feedback": "The answer 'It sorts better.' does not explain the purpose of creating a copy of the `scores` array before sorting. The intent is to avoid mutating the original array, not to improve sorting performance.",
+            "evidence": [
+              "return [...scores].sort((a, b) => a - b);"
+            ],
+            "gaps": [
+              "Explanation of the purpose of creating a copy of the `scores` array before sorting."
+            ],
+            "next_question": "What is the purpose of creating a copy of the `scores` array before sorting it?",
+            "answer_quotes": [],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789804435.733686
+        },
+        {
+          "id": "72304bfb-7236-4982-a347-5464ec049fcd",
+          "checkpoint_id": "851ca9cf-0715-439f-810e-a84917c6ab0d",
+          "key": "live-good-2",
+          "request_hash": "40022774fb59c77c60d6bb5a3bd61136bd2d89b6bb73191b6e71a67634a2cec3",
+          "version": 2,
+          "answer": "Spread creates a new shallow array before sort mutates it. The caller's scores array therefore keeps its original order, while the returned copy is sorted in ascending numeric order by a minus b. It allocates an extra array, unlike sorting in place, and does not deeply clone nested objects. The comparator assumes numeric scores; NaN and nonnumeric values still need validation.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "pass",
+            "intent_correct": true,
+            "mechanism_correct": true,
+            "reasoning_correct": true,
+            "central_contradiction": false,
+            "feedback": "The learner correctly explained the purpose of creating a copy of the `scores` array before sorting it, the mechanism of using the spread operator, and the reasoning behind this approach. The explanation covers the intent, mechanism, and a meaningful design choice.",
+            "evidence": [
+              "return [...scores].sort((a, b) => a - b);"
+            ],
+            "gaps": [],
+            "next_question": null,
+            "answer_quotes": [
+              "Spread creates a new shallow array before sort mutates it.",
+              "The caller's scores array therefore keeps its original order, while the returned copy is sorted in ascending numeric order by a minus b.",
+              "It allocates an extra array, unlike sorting in place, and does not deeply clone nested objects."
+            ],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789804439.7103214
+        }
+      ],
+      "managed_reply": "One short edge-case test for the `sortedScores` function is:\n\n```javascript\nconsole.log(sortedScores([])); // Should return []\n```\n\nExplanation:\nThis test checks if the function correctly handles an empty array. The expected output is an empty array since there are no scores to sort."
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/v1/config",
+      "status": 200,
+      "seconds": 0.06
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.01
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/23660122-0952-4932-af30-a7d6c8b4a8db/changes",
+      "status": 200,
+      "seconds": 4.25
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/dd4759f3-b398-4577-a340-cdb8e0c87449/answers",
+      "status": 200,
+      "seconds": 3.74
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/23660122-0952-4932-af30-a7d6c8b4a8db/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/dd4759f3-b398-4577-a340-cdb8e0c87449/answers",
+      "status": 200,
+      "seconds": 4.64
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/23660122-0952-4932-af30-a7d6c8b4a8db/gate",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/23660122-0952-4932-af30-a7d6c8b4a8db/ask",
+      "status": 200,
+      "seconds": 2.14
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/23660122-0952-4932-af30-a7d6c8b4a8db/end",
+      "status": 200,
+      "seconds": 0.01
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/eb79770b-714f-49d5-89d5-c0fc23944913/changes",
+      "status": 200,
+      "seconds": 4.78
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/d58fa419-cb59-44d4-b909-0e8f6bb8ebe7/answers",
+      "status": 200,
+      "seconds": 4.72
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/eb79770b-714f-49d5-89d5-c0fc23944913/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/eb79770b-714f-49d5-89d5-c0fc23944913/ask",
+      "status": 200,
+      "seconds": 1.45
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/eb79770b-714f-49d5-89d5-c0fc23944913/end",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.01
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/ab330187-b478-4955-aefb-d47582236bad/changes",
+      "status": 200,
+      "seconds": 4.58
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/851ca9cf-0715-439f-810e-a84917c6ab0d/answers",
+      "status": 200,
+      "seconds": 3.97
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/ab330187-b478-4955-aefb-d47582236bad/gate",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/851ca9cf-0715-439f-810e-a84917c6ab0d/answers",
+      "status": 200,
+      "seconds": 4.89
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/ab330187-b478-4955-aefb-d47582236bad/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/ab330187-b478-4955-aefb-d47582236bad/ask",
+      "status": 200,
+      "seconds": 1.53
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/ab330187-b478-4955-aefb-d47582236bad/end",
+      "status": 200,
+      "seconds": 0.01
+    },
+    {
+      "method": "GET",
+      "path": "/v1/history",
+      "status": 200,
+      "seconds": 0.0
+    }
+  ],
+  "model": "qwen2.5-coder:7b",
+  "passed": true
+}

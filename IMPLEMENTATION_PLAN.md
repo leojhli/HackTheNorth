@@ -4,6 +4,12 @@ Living delivery record — 19 September 2026. Status labels: planned, implemente
 
 ## Current delivery status
 
+### Delivered milestone: beginner-friendly, realistic demo folder
+
+Replace the single Set example with a runnable, dependency-free Campus Game Night site: HTML, CSS, event data, UI logic and a tiny capacity helper. Generate a fresh isolated Git repository with the supporting files already committed and exactly one saved helper change for capture: add `if (guestCount >= capacity) return false;` before the original `return true;`. Add a beginner walkthrough and a local preview launcher. Keep real model questions and grading; no canned questions, passing history or lowered gate requirements. Verify boundary behavior, real browser interaction, capture scope and an actual local-model rehearsal where available. Existing demo folders remain untouched. Model wording/difficulty cannot be guaranteed; unrelated rubric demands remain quality defects rather than requirements for the learner.
+
+Delivered a fresh folder `campus-events-55e0e9c0` with a beginner START_HERE guide and localhost:8010 preview. Existing user folders were untouched. The initial comparison-only example exposed inaccurate model reasoning. General prompt changes improved that example but regressed the SQL smoke; those changes were reverted byte-for-byte (verified against the prior assessor fingerprint). The final demo instead adds an explicit one-line guard, with no application grading changes. Its real-model question/follow-up/pass/managed/history flow completed in 2.25-4.59 seconds per inference. Correct final feedback explains the full-room boundary; the model still labels vagueness a contradiction and generated an incorrect zero-capacity test. Retained all evidence and did not present these as resolved quality issues. Final verification: 49 backend tests passed; browser/capture checks passed on the final guard fixture (including zero capacity). A fresh general SQL smoke on the restored original assessor still produced an unfair follow-up on a complete answer; the demo succeeds but broader quality acceptance remains open. Previous human-review and latency requirements remain open.
+
 ### Delivered milestone: focus the demo and assess evaluator quality; acceptance still open
 
 User decision: leave Solana implemented but disabled, remove receipts/verifier from the main demo/navigation, and withdraw the Solana track claim. Retain existing layouts and archived receipt work. Disabled receipt endpoints must not make RPC calls through direct links.

@@ -1,0 +1,170 @@
+{
+  "provider": "local Ollama, actual inference",
+  "cases": [
+    {
+      "name": "Demo: game night capacity",
+      "question": {
+        "decision": "assess",
+        "concept": "Condition for joining",
+        "question": "What is the difference between the old and new condition for joining, and how does it affect the function's behavior?",
+        "reason": "The change modifies the condition for joining by changing `<=` to `<`. This affects the function's behavior by allowing one more guest than the capacity to join, which was not possible before.",
+        "rubric": [
+          "The function now allows one more guest than the capacity to join.",
+          "The condition is checked using a less-than operator (`<`) instead of a less-than-or-equal-to operator (`<=`).",
+          "This change increases the capacity by one, which could lead to overbooking if not handled properly."
+        ],
+        "evidence": [
+          {
+            "path": "src/canJoin.js",
+            "start_line": 2,
+            "end_line": 2,
+            "quote": "return guestCount < capacity;"
+          }
+        ],
+        "important_distinct_use": false
+      },
+      "attempts": [
+        {
+          "id": "b1ffbded-57e5-49bd-ba92-a37fada606e6",
+          "checkpoint_id": "5a55e2ac-c3e0-40e0-a279-3b385117b0d6",
+          "key": "live-weak-0",
+          "request_hash": "11caca4bdd985cd6f8fbf58564a595564511489c9acaafc296b33fe00b8e6bf3",
+          "version": 1,
+          "answer": "It fixes the signup.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "follow_up",
+            "intent_correct": false,
+            "mechanism_correct": true,
+            "reasoning_correct": false,
+            "central_contradiction": true,
+            "feedback": "The answer does not explain the purpose, mechanism, or limitation of the change. It also contradicts the rubric by stating that it fixes the signup, which is not supported by the code change.",
+            "evidence": [
+              "src/canJoin.js",
+              "2",
+              "2",
+              "return guestCount < capacity;"
+            ],
+            "gaps": [
+              "The intent is not clear.",
+              "The reasoning does not address the impact of the change.",
+              "The central contradiction is not explained."
+            ],
+            "next_question": "What is the purpose of changing the condition from `<=` to `<` in the `canJoin` function, and how does this affect the function's behavior?",
+            "answer_quotes": [
+              "",
+              "return guestCount < capacity;",
+              ""
+            ],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789825472.1944988
+        },
+        {
+          "id": "299a7bcc-519c-4c90-a706-bb2dc8d9afba",
+          "checkpoint_id": "5a55e2ac-c3e0-40e0-a279-3b385117b0d6",
+          "key": "live-good-0",
+          "request_hash": "7c683a26987484b5476855f73b4f960ea97892c1a0c6139ab4cb039a471c46c3",
+          "version": 2,
+          "answer": "This stops us adding more people when the event is full. Less than means the current number must be below the maximum. Four is below five, so someone can join; five is not below five, so nobody else can join. This function only checks for room; the button code actually adds the person.",
+          "modality": "text",
+          "state": "completed",
+          "evaluation": {
+            "decision": "pass",
+            "intent_correct": true,
+            "mechanism_correct": true,
+            "reasoning_correct": true,
+            "central_contradiction": false,
+            "feedback": "Your explanation correctly identifies the purpose, mechanism, and limitation of the code change. The function now allows one more guest than the capacity to join, which could lead to overbooking if not handled properly.",
+            "evidence": [
+              "return guestCount < capacity;"
+            ],
+            "gaps": [],
+            "next_question": null,
+            "answer_quotes": [
+              "This stops us adding more people when the event is full.",
+              "Less than means the current number must be below the maximum.",
+              "This function only checks for room; the button code actually adds the person."
+            ],
+            "model": "ollama/qwen2.5-coder:7b"
+          },
+          "error": null,
+          "created": 1789825477.0257924
+        }
+      ],
+      "managed_reply": "A short edge-case test for the `canJoin` function could be:\n\n```javascript\nconsole.log(canJoin(0, 1)); // Expected output: true\n```\n\nExplanation:\n- This test checks the scenario where there are no guests (`guestCount` is 0) and the capacity is at least 1.\n- The function should return `true` because 0 is less than 1, meaning it's possible to join."
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/v1/config",
+      "status": 200,
+      "seconds": 0.06
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": 200,
+      "seconds": 0.01
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/17852bb7-e8b4-4fc2-b152-5743530c8cfb/changes",
+      "status": 200,
+      "seconds": 4.34
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/5a55e2ac-c3e0-40e0-a279-3b385117b0d6/answers",
+      "status": 200,
+      "seconds": 4.83
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/17852bb7-e8b4-4fc2-b152-5743530c8cfb/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checkpoints/5a55e2ac-c3e0-40e0-a279-3b385117b0d6/answers",
+      "status": 200,
+      "seconds": 3.17
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/17852bb7-e8b4-4fc2-b152-5743530c8cfb/gate",
+      "status": 200,
+      "seconds": 0.0
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/17852bb7-e8b4-4fc2-b152-5743530c8cfb/ask",
+      "status": 200,
+      "seconds": 1.66
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/17852bb7-e8b4-4fc2-b152-5743530c8cfb/end",
+      "status": 200,
+      "seconds": 0.02
+    },
+    {
+      "method": "GET",
+      "path": "/v1/history",
+      "status": 200,
+      "seconds": 0.02
+    }
+  ],
+  "model": "qwen2.5-coder:7b",
+  "passed": true
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campus Game Night</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="src/main.js"></script>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">CAMPUS CLUB / FRIDAY SOCIAL</p>
+      <h1 id="event-title">Campus Game Night</h1>
+      <p class="intro">Board games, snacks, and a few new friends. Try our small event signup counter.</p>
+      <section class="card" aria-label="Event signup">
+        <div class="details"><span>Friday · 6 PM</span><span>Student lounge</span></div>
+        <p class="label">People signed up</p>
+        <p class="count"><span id="guest-count">0</span><span class="capacity"> / <span id="capacity">5</span></span></p>
+        <p id="status" role="status" aria-live="polite"></p>
+        <div class="actions">
+          <button id="join" type="button">Add one guest</button>
+          <button id="leave" type="button" class="secondary">Remove one guest</button>
+        </div>
+        <button id="reset" type="button" class="reset">Start over</button>
+      </section>
+      <p class="note">Practice project · No accounts or real bookings. Refreshing resets the counter.</p>
+    </main>
+  </body>
+</html>

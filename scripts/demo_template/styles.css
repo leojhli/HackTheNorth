@@ -1,0 +1,21 @@
+:root { font-family: system-ui, sans-serif; color: #19392f; background: #f3f5ee; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 620px; margin: 70px auto; padding: 0 24px; }
+.eyebrow { font-size: 12px; font-weight: 750; letter-spacing: .12em; color: #49715e; }
+h1 { font-size: clamp(32px, 7vw, 46px); letter-spacing: -.04em; margin: 18px 0; }
+.intro, .note { line-height: 1.6; color: #53635b; }
+.card { background: white; border: 1px solid #dce4d7; border-radius: 24px; padding: 28px; margin: 28px 0; box-shadow: 0 12px 32px #173d2810; }
+.details { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 14px; }
+.label { margin: 32px 0 0; }
+.count { font-size: 68px; font-weight: 750; margin: 0; letter-spacing: -.06em; }
+.capacity { font-size: 28px; color: #6c7e72; }
+#status { min-height: 24px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+button { border: 0; border-radius: 12px; background: #215a43; color: white; padding: 14px 18px; font: inherit; font-weight: 650; cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible { outline: 3px solid #e69b24; outline-offset: 4px; }
+.secondary { background: #eef3eb; color: #215a43; }
+.reset { background: transparent; color: #52655a; padding: 14px 0 0; font-size: 14px; text-decoration: underline; }
+.note { font-size: 13px; }
+@media (max-width: 440px) { main { margin: 36px auto; } .card { padding: 22px; } .actions button { width: 100%; } }
