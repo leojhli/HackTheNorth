@@ -554,23 +554,24 @@ function PausedCheckpoint({ a }: { a: ExtActions }) {
 /* ------------------------------- E11 ----------------------------------- */
 function ErrorState({ s, a }: { s: ExtensionState; a: ExtActions }) {
   const saving = s.errorVariant === 'saving'
+  const draft = s.followupDraft || s.initialDraft
   return (
     <div className="mx-auto max-w-[520px] space-y-5">
       <div className="flex items-center gap-3">
         <Alert size={20} className="text-error" />
         <h1 className="text-[18px] font-semibold leading-[26px]">
-          {saving ? 'We couldn’t confirm your saved result' : 'We couldn’t check your explanation'}
+          {saving ? 'We couldn’t confirm your saved result' : draft ? 'We couldn’t check your explanation' : 'We couldn’t prepare this checkpoint'}
         </h1>
       </div>
       <InlineNotice kind="error">
         {saving
           ? 'Your explanation passed, but saving it to your history hasn’t confirmed yet. Your draft is still in this panel.'
-          : 'Your answer is saved here. Try again when the connection returns.'}
+          : draft ? 'Your draft is kept in this panel. Retry when the service is ready.' : 'No assessment result was recorded. Retry to prepare the question.'}
       </InlineNotice>
-      <div className="rounded-[var(--radius-control)] border border-subtle bg-canvas p-3 text-[13px]">
+      {draft && <div className="rounded-[var(--radius-control)] border border-subtle bg-canvas p-3 text-[13px]">
         <div className="mb-1 text-[12px] font-medium text-secondary">Your draft</div>
-        <p className="text-primary">{s.followupDraft || s.initialDraft || '—'}</p>
-      </div>
+        <p className="text-primary">{draft}</p>
+      </div>}
       <div className="flex flex-col gap-2 @[720px]:flex-row">
         <Button onClick={a.retry}>Retry</Button>
         <Button variant="secondary" onClick={a.keepEditing}>

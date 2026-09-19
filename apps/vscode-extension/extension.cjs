@@ -16,7 +16,7 @@ function activate(context) {
   const status=vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left,15);
   status.command='codeproof.open';status.text='CodeProof: not started';status.show();
   const controller=new Controller(vscode,context,state=>{
-    status.text=!state.session?'CodeProof: not started':state.busy?'CodeProof: working':state.gate?.available?'CodeProof: AI available':'CodeProof: checkpoint required';
+    status.text=state.connectionError?'CodeProof: backend offline':!state.session?'CodeProof: not started':state.busy?'CodeProof: working':state.gate?.available?'CodeProof: AI available':'CodeProof: checkpoint required';
     if(view&&ready)void view.webview.postMessage({type:'state',state});
   });
   const provider={
@@ -66,6 +66,7 @@ function activate(context) {
   }));
   pollTimer=setInterval(()=>{if(view?.visible&&ready&&!controller.state.busy)void controller.execute('refresh').catch(()=>{});},8000);
   context.subscriptions.push({dispose(){clearInterval(pollTimer);clearTimeout(saveTimer);}});
+  void controller.execute('ready').catch(()=>{});
   return {controller,provider,getView:()=>view,isReady:()=>ready};
 }
 module.exports={activate};

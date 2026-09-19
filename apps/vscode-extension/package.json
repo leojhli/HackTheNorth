@@ -2,7 +2,7 @@
   "name": "codeproof-companion",
   "displayName": "CodeProof",
   "description": "Explain saved code changes in your VS Code sidebar and unlock the next CodeProof-managed AI request.",
-  "version": "0.4.5",
+  "version": "0.5.2",
   "publisher": "codeproof-local",
   "engines": {
     "vscode": "^1.95.0"

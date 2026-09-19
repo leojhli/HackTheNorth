@@ -1,6 +1,6 @@
 import type {Checkpoint,Config,Gate,Project,Session} from '../lib/api'
 export type Draft={checkpointId:string;version:number;snapshotHash:string;text:string}
-export type SidebarState={connected:boolean;project:Project|null;session:Session|null;checkpoint:Checkpoint|null;gate:Gate|null;history:Checkpoint[];config:Config|null;busy:boolean;operation:string|null;error:string;notice:string;draft:Draft|null}
+export type SidebarState={connectionError?:boolean;connected:boolean;project:Project|null;session:Session|null;checkpoint:Checkpoint|null;gate:Gate|null;history:Checkpoint[];config:Config|null;busy:boolean;operation:string|null;error:string;notice:string;draft:Draft|null}
 declare function acquireVsCodeApi(): {postMessage:(message:unknown)=>void}
 const host=acquireVsCodeApi()
 const pending=new Map<string,{resolve:()=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>}>()

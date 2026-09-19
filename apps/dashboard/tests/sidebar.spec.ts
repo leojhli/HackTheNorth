@@ -55,6 +55,16 @@ test('sidebar UI: saved capture, draft restoration, follow-up, pass and next man
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
     await page.getByLabel('Your explanation',{exact:true}).fill('Draft preserved while the webview reloads.')
     await expect.poll(()=>controller.draft?.text).toBe('Draft preserved while the webview reloads.')
+    const fetchBefore=globalThis.fetch
+    globalThis.fetch=async()=>{throw Error('Test connection outage')}
+    try{await expect(controller.execute('refresh')).rejects.toThrow('backend is offline')}
+    finally{globalThis.fetch=fetchBefore}
+    await expect(page.getByRole('heading',{name:'CodeProof is offline'})).toBeVisible()
+    await expect(page.getByRole('region',{name:'Backend offline'})).toContainText('Draft preserved while the webview reloads.')
+    await expect(page.getByRole('button',{name:'Managed Ask AI',exact:true})).toBeDisabled()
+    await page.getByRole('button',{name:'Refresh connection',exact:true}).click()
+    await expect(page.getByLabel('Your explanation',{exact:true})).toHaveValue('Draft preserved while the webview reloads.')
+    await expect(page.getByRole('region',{name:'Backend offline'})).toHaveCount(0)
     await page.reload()
     await expect(page.getByLabel('Your explanation',{exact:true})).toHaveValue('Draft preserved while the webview reloads.')
     await page.screenshot({path:'test-results/vscode-sidebar-checkpoint.png',fullPage:true,animations:'disabled'})

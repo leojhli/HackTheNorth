@@ -4,13 +4,14 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const run = promisify(execFile);
+const gitExecutable=process.platform==='win32'&&require('node:fs').existsSync('C:/Program Files/Git/cmd/git.exe')?'C:/Program Files/Git/cmd/git.exe':'git';
 function within(root,target) {
   const relative=path.relative(root,target);
   return relative!=='' && relative!=='..' && !relative.startsWith('..'+path.sep) && !path.isAbsolute(relative);
 }
 
 async function git(root, ...args) {
-  const result = await run('git', ['-C', root, ...args], {encoding:'utf8', maxBuffer:2_000_000, windowsHide:true});
+  const result = await run(gitExecutable, ['-C', root, ...args], {encoding:'utf8', maxBuffer:2_000_000, windowsHide:true});
   return result.stdout;
 }
 
@@ -26,7 +27,7 @@ async function collect(root, project) {
     if (!/\.(?:tsx?|jsx?|mjs|cjs)$/.test(file) || /(^|\/)(?:\.env[^/]*|node_modules|dist|build|coverage|vendor|\.git|\.venv|\.tools|\.next|__pycache__)(\/|$)|\.(?:min\.js|d\.ts|generated\.ts)$/.test(file)) continue;
     const matches = p => p==='.' || file===p.replace(/\/$/,'') || file.startsWith(p.replace(/\/$/,'')+'/');
     if (!project.scope.some(matches) || project.exclusions.some(matches)) continue;
-    const ignored = await run('git',['-C',root,'check-ignore','--no-index','-q','--',file],{windowsHide:true}).then(()=>true,()=>false);
+    const ignored = await run(gitExecutable,['-C',root,'check-ignore','--no-index','-q','--',file],{windowsHide:true}).then(()=>true,()=>false);
     if (ignored) continue;
     const local = path.resolve(root,file);
     if (!within(root,local)) throw Error('Capture path left repository.');

@@ -16,6 +16,45 @@ def config(**kwargs):
     return Settings(_env_file=None, **kwargs)
 
 
+def test_question_citation_restores_unique_source_format_and_line_numbers():
+    from backend.assessment import LocalQuestion
+    from backend.context import validate_evidence
+    model = LocalAssessor(config())
+    snapshot = {'files':[{'path':'src/a.js','lines':[
+        {'number':10,'text':'  if (age < 18) {'}, {'number':11,'text':'    return false;'}, {'number':12,'text':'  }'}]}]}
+    question = LocalQuestion(decision='assess', concept='Age check', question='Can a 17-year-old enter and why?',
+        reason='The change rejects ages under 18.', rubric=['purpose','mechanism','boundary'],
+        evidence=[{'path':'src/a.js','start_line':9,'end_line':11,'quote':'if (age < 18) {\nreturn false;\n}'}], important_distinct_use=False)
+    model.structured = lambda *args: question
+    repaired = model.question(snapshot, [])
+    validate_evidence(repaired, snapshot)
+    assert repaired.evidence[0].start_line == 10
+    assert repaired.evidence[0].end_line == 12
+    assert repaired.evidence[0].quote == '  if (age < 18) {\n    return false;\n  }'
+    assert repaired.question == question.question and repaired.rubric == question.rubric
+
+
+@pytest.mark.parametrize('kind', ['changed_token', 'ambiguous', 'missing_line', 'wrong_file'])
+def test_question_citation_does_not_guess_source(kind):
+    from backend.assessment import LocalQuestion
+    from backend.context import validate_evidence
+    model = LocalAssessor(config())
+    lines = [{'number':10,'text':'  if (age < 18) {'}, {'number':11,'text':'    return false;'}, {'number':12,'text':'  }'}]
+    if kind == 'ambiguous':
+        lines += [{**line,'number':line['number']+10} for line in lines]
+    if kind == 'missing_line':
+        lines[1]['number'] = 15
+    question = LocalQuestion(decision='assess', concept='Age check', question='Can a 17-year-old enter and why?',
+        reason='The change rejects ages under 18.', rubric=['purpose','mechanism','boundary'],
+        evidence=[{'path':'src/other.js' if kind=='wrong_file' else 'src/a.js','start_line':1,'end_line':3,
+            'quote':'if (age < 18) {\nreturn '+('true' if kind=='changed_token' else 'false')+';\n}'}], important_distinct_use=False)
+    model.structured = lambda *args: question
+    snapshot = {'files':[{'path':'src/a.js','lines':lines}]}
+    repaired = model.question(snapshot, [])
+    with pytest.raises(ValueError):
+        validate_evidence(repaired, snapshot)
+
+
 def test_managed_prompt_contains_only_explicit_context_and_marks_it_untrusted():
     model = LocalAssessor(config())
     calls = []

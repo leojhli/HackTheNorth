@@ -16,6 +16,23 @@ function fixture(){
   controller.checkpoint=structuredClone(cp);
   return {controller,vscode,context,emitted};
 }
+test('backend outage clears connected state, preserves draft/token, and refresh recovers',async(t)=>{
+  const {controller,context}=fixture();
+  controller.active={root:'C:\\repo',origin:'http://127.0.0.1:8000',projectId:'p',sessionId:'s'};
+  controller.state.connected=true;controller.draft={...draft};
+  const offline=t.mock.method(globalThis,'fetch',async()=>{throw Error('ECONNREFUSED');});
+  await assert.rejects(controller.execute('refresh'),/backend is offline/);
+  assert.equal(controller.state.connected,false);
+  assert.equal(controller.state.connectionError,true);
+  assert.equal(controller.draft.text,draft.text);
+  assert.equal(await context.secrets.get('codeproof.token:http://127.0.0.1:8000'),'private-test-token');
+  offline.mock.restore();
+  controller.request=async(route)=>route==='/v1/config'?{}:route==='/v1/projects'?[{id:'p'}]:route==='/v1/sessions'?[{id:'s',status:'active'}]:route==='/v1/history'?[]:route.endsWith('/gate')?{available:false,checkpoint_id:cp.id}:cp;
+  await controller.execute('refresh');
+  assert.equal(controller.state.connected,true);assert.equal(controller.state.connectionError,false);
+  assert.equal(controller.state.error,'');assert.equal(controller.draft.text,draft.text);
+});
+
 test('connecting another project reuses the server token without another password prompt',async()=>{
   const {controller,vscode}=fixture();let prompts=0;
   vscode.window.showInputBox=async()=>{prompts++;return 'new-token';};

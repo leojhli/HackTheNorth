@@ -28,7 +28,10 @@ class Controller {
     if(!publicRequest&&!token)throw Error('Connect your account first. Your token stays in VS Code SecretStorage.');
     let response;
     try {response=await fetch(origin+route,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(135000)});}
-    catch {throw Error('Cannot reach CodeProof. Check the backend address, then refresh to reconcile saved work.');}
+    catch {
+      this.state.connected=false;this.state.connectionError=true;
+      throw Object.assign(Error('CodeProof backend is offline. Start scripts/run-local.ps1 in the CodeProof folder, then click Refresh. Your saved history and current draft are kept.'),{code:'backend_offline'});
+    }
     const value=await response.json().catch(()=>({}));
     if(!response.ok) {
       if(response.status===401){this.state.connected=false;}
@@ -62,14 +65,14 @@ class Controller {
   async refresh() {
     this.trusted();
     this.state.config=await this.request('/v1/config','GET',undefined,true);
-    if(!this.active){this.emit();return;}
+    if(!this.active){this.state.connectionError=false;this.emit();return;}
     const [projects,sessions,history]=await Promise.all([this.request('/v1/projects'),this.request('/v1/sessions'),this.request('/v1/history')]);
     const project=projects.find(p=>p.id===this.active.projectId);
     const session=sessions.find(s=>s.id===this.active.sessionId);
     if(!project || !session || session.status!=='active') {
       this.active=null;await this.remember();
       Object.assign(this.state,{connected:true,project:project||null,session:null,checkpoint:null,gate:null,history:[]});
-      this.checkpoint=null;this.draft=null;this.emit();return;
+      this.checkpoint=null;this.draft=null;this.state.connectionError=false;this.emit();return;
     }
     const gate=await this.request('/v1/sessions/'+session.id+'/gate');
     let cp=gate.checkpoint_id ? await this.request('/v1/checkpoints/'+gate.checkpoint_id) : null;
@@ -81,7 +84,7 @@ class Controller {
       this.draft=cp?{checkpointId:cp.id,version:cp.version,snapshotHash:cp.snapshot_hash,text:failed?.answer||''}:null;
       this.answerIntent=failed?{checkpointId:cp.id,version:cp.version,text:failed.answer,key:failed.key,modality:failed.modality}:null;
     }
-    Object.assign(this.state,{connected:true,project,session,checkpoint:cp,gate,history:history.filter(c=>c.project_id===project.id)});
+    Object.assign(this.state,{connected:true,connectionError:false,project,session,checkpoint:cp,gate,history:history.filter(c=>c.project_id===project.id)});
     this.emit();
   }
   async connect() {

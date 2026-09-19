@@ -27,6 +27,7 @@ export default function SidebarApp(){
       if(key!==binding.current){
         binding.current=key;setText(next.draft?.text||'');setMode('checkpoint');setLocalError('')
       }
+      if(next.connected&&!next.error)setLocalError('')
       setState(next)
     })
     void send('ready').catch(e=>setLocalError(e.message))
@@ -39,6 +40,7 @@ export default function SidebarApp(){
   const cp=state.checkpoint
   const stageAttempts=cp?.attempts.filter(a=>!cp.practice_started_version||a.version>=cp.practice_started_version)||[]
   const working=state.busy&&!['ready','refresh'].includes(state.operation||'')
+  const offline=!!state.connectionError
   let phase:Phase=!state.session?'welcome':!cp||cp.status==='skipped'?'active':passed(cp)?'verified':cp.status==='unavailable'||!cp.question?'error':cp.status==='evaluating'?'evaluating':cp.status==='needs_followup'?'followup':'checkpoint'
   if(state.session && mode==='active')phase='active'
   if(cp&&!passed(cp)&&mode==='paused')phase='paused'
@@ -74,16 +76,16 @@ export default function SidebarApp(){
     <nav aria-label="Sidebar actions" className="flex flex-wrap items-center gap-3 border-b border-subtle px-4 py-2 text-[12px] text-secondary">
       <button disabled={state.busy} onClick={()=>action('refresh')}>Refresh</button>
       {state.connected&&<button disabled={state.busy} onClick={()=>action('projects')}>Projects</button>}
-      {state.session&&<button disabled={state.busy||!state.gate?.available} title={state.gate?.available?'Ask the local coding assistant':'Complete the checkpoint to unlock Managed Ask AI'} onClick={()=>action('ask')}>Managed Ask AI</button>}
+      {state.session&&<button disabled={state.busy||offline||!state.gate?.available} title={state.gate?.available?'Ask the local coding assistant':'Complete the checkpoint to unlock Managed Ask AI'} onClick={()=>action('ask')}>Managed Ask AI</button>}
       <button disabled={state.busy} onClick={()=>action('history')}>Learning history ↗</button>
       {state.connected&&<button disabled={state.busy} onClick={()=>action('disconnect')} className="ml-auto">Disconnect</button>}
     </nav>
-    {(state.error||localError)&&<div role="alert" className="p-3"><InlineNotice kind="error">{localError||state.error}{!state.connected&&<Button variant="text" onClick={()=>action('connect')}>Connect account</Button>}</InlineNotice></div>}
+    {(state.error||localError)&&<div role="alert" className="p-3"><InlineNotice kind="error">{localError||state.error}{!state.connected&&!offline&&<Button variant="text" onClick={()=>action('connect')}>Connect account</Button>}</InlineNotice></div>}
     {state.notice&&<div role="status" className="px-3 pt-3"><InlineNotice kind="info">{state.notice}</InlineNotice></div>}
     {state.config&&!state.config.capabilities.assessment&&<p className="px-4 pt-3 text-[12px] leading-5 text-secondary">{state.config.ai?.message || 'Start the local model server, then refresh. No API key is required.'}</p>}
     {working&&<p role="status" className="px-4 pt-3 text-[12px] text-secondary">{state.operation==='connect'?'Complete the VS Code connection prompts.':state.operation==='capture'?'Review and approve the saved source preview in VS Code.':'Working… your result is saved before the AI gate changes.'}</p>}
     {working&&elapsed>=10&&<p className="px-4 pt-2 text-[12px] leading-5 text-secondary">{elapsed}s elapsed. {elapsed>=30?'Local processing is taking longer than usual. You can keep editing; the checkpoint stays saved.':'The model runs on this computer. The first request can take longer to load.'}</p>}
-    <fieldset disabled={working} className="m-0 flex min-w-0 flex-1 flex-col border-0 p-0"><ExtensionPanel s={s} a={actions}/></fieldset>
+    {offline?<section className="space-y-4 p-5" aria-label="Backend offline"><h2 className="text-lg font-semibold">CodeProof is offline</h2><p className="text-sm text-secondary">Start the CodeProof backend, then refresh to reopen your checkpoint. This is a connection problem, not an assessment result.</p>{text&&<div className="whitespace-pre-wrap break-words rounded border border-subtle p-3 text-sm"><p className="mb-2 text-secondary">Your draft (kept in this window)</p>{text}</div>}<Button disabled={state.busy} onClick={()=>action('refresh')}>Refresh connection</Button></section>:<fieldset disabled={working} className="m-0 flex min-w-0 flex-1 flex-col border-0 p-0"><ExtensionPanel s={s} a={actions}/></fieldset>}
     <p className="border-t border-subtle px-4 py-3 text-[11px] leading-[17px] text-secondary">Only CodeProof Managed Ask AI is gated. Manual edits and other assistants remain available. Capture covers approved saved Git changes; unsaved buffers are excluded.</p>
   </main></ProductContext.Provider>
 }
