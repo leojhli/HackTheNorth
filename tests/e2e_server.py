@@ -13,7 +13,7 @@ if __name__ == '__main__':
         port=int(os.environ.get('BEPROGRAM_E2E_PORT','8010'))
         config = Settings(_env_file=None, environment='test', database_url='sqlite:///'+str(Path(directory)/'e2e.db'),
             auth_mode='local', local_dev_token='automated-test-only-token-not-a-real-secret',
-            allowed_origins=f'http://127.0.0.1:{port}', app_origin=f'http://127.0.0.1:{port}',openai_model='test-only-fixture')
+            allowed_origins=f'http://127.0.0.1:{port}', app_origin=f'http://127.0.0.1:{port}')
         database = Database(config.database_url)
         app = create_app(config, database, FixtureAssessor())
         uvicorn.run(app, host='127.0.0.1', port=port, access_log=False)

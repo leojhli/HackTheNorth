@@ -1,30 +1,29 @@
-# Deployment preparation
+# Operating the free local edition
 
-One API process serves the built React UI and all private routes. Use one PostgreSQL database (Supabase Postgres works) and Supabase Auth. SQLite/local token mode is for loopback development; startup rejects either in production.
+The supported zero-subscription delivery runs on your own computer: one FastAPI process serves the built website, SQLite persists history, and a separate local Ollama process performs inference. No hosting account, domain, Supabase account or model credits are required. VS Code connects over loopback.
 
-1. Provision PostgreSQL and a Supabase Auth project; enable asymmetric JWT signing and create/invite pilot users. Set your app URL and auth redirect URLs. No registration flow is supplied in this prototype.
-2. Create a server `.env` from `.env.example`. Set `ENVIRONMENT=production`, `AUTH_MODE=supabase`, `DATABASE_URL` using the psycopg dialect, `SUPABASE_URL`, publishable key, exact HTTPS `APP_ORIGIN` and comma-separated `ALLOWED_ORIGINS`. Put private keys in the host secret manager. Never use frontend `VITE_` variables for private keys.
-3. Build and initialize:
+## Daily use
 
-```sh
-docker build -t beprogram .
-docker run --rm --env-file .env beprogram python -m backend.migrate
-docker compose -f compose.production.yml up -d
-```
+1. Run `./scripts/run-local.ps1` from the repository. This starts the dedicated Ollama server on 127.0.0.1:11435 with `OLLAMA_NO_CLOUD=1`, then the app on 127.0.0.1:8000.
+2. Use the local VSIX/sidebar or dashboard. Keep `LOCAL_DEV_TOKEN` in `.env` private; the token authenticates local requests and is not a provider API key.
+3. Stop the backend with Ctrl+C. Use `./scripts/stop-local-ai.ps1` to stop the isolated model server and release GPU memory.
+4. Back up `beprogram.db` while the app is stopped, or use SQLite's online backup API. Do not copy only the DB while ignoring an active WAL. Protect backups because they contain approved source and explanations.
+5. Schedule `python -m backend.retention` locally if using the documented 30-day source-context expiry. It is not automatically scheduled. Project deletion removes its local records; it cannot remove exported files or optional public receipts.
 
-4. Put an HTTPS reverse proxy in front of 127.0.0.1:8000. Enforce a 12 MB request limit, upstream timeout greater than 40 seconds, and request rate limits (especially public `/v1/verify`). Keep API port private; only the proxy exposes the application. Allow microphone on the app's HTTPS origin. Proxy request/access logs must not include auth headers, bodies, or query credentials. The supplied container disables access logs and forwarded-header trust.
-5. Verify `/health`, authenticated owner isolation, actual OpenAI checkpoint/follow-up/pass, restart recovery, and one end-to-end managed request. Test the exact configured PostgreSQL deployment under concurrent requests; local SQLite tests are not PostgreSQL concurrency certification.
-6. Schedule `python -m backend.retention` daily using a job with the same database settings. It removes source context after 30 days and removes expired private receipt packages as a whole, preserving commitments rather than silently changing them. Evidence metadata/answers remain until project deletion. Deleting a project cascades its private records. Exported/on-chain/remote artifacts remain separate.
+Model weights/runtime are in `%LOCALAPPDATA%/BeProgram/ollama`. The model download needs internet; core inference and persistence work locally afterward. Optional Devnet verification and package installation still require internet. Ollama startup logs are in that runtime directory; do not enable source-payload debug logging.
 
-Database migration v1 creates a private `beprogram` schema and revokes public/anon/authenticated schema access when those roles exist. Keep this schema out of Supabase exposed schemas. Run migrations with a schema owner; run the API with a dedicated role granted only usage and required table CRUD. Do not use a browser service-role key. Future schema changes require explicit migrations; `create_all` does not upgrade existing columns.
+Local auth checks that the caller is loopback. Keep both service ports private: do not expose this token-based development setup through a tunnel or public reverse proxy. The existing production checks still require proper JWT authentication and PostgreSQL. This change does not weaken those checks to pretend local auth is a multiuser deployment.
 
-Back up PostgreSQL with encrypted backups and rehearse restoration. Define a retention policy for backups and exported evidence. Rotate OpenAI/ElevenLabs/Composio keys and Devnet issuer keys through the secret manager; old receipt verification needs the historical trusted public issuer list. Issuer rotation does not rewrite an existing preview. Monitor health, typed error rates, provider latency, database disk and retention failures.
+## Optional hosted deployment
 
-Optional activation gates:
+Existing Docker/compose/Supabase/PostgreSQL assets are historical preparation, not a turnkey free deployment. A hosted server would also need actual local-model compute in the same network namespace as the backend's loopback-only Ollama endpoint. No free GPU host or subscription-free public availability is promised. Use the local demo for this budget.
 
-- Sentry: inspect actual emitted envelopes, then verify correlated errors/traces/logs in your organization. A local memory-transport redaction test is not a delivered Sentry event.
-- Solana: fund a dedicated Devnet issuer with test SOL; never use a mainnet wallet. Set an independently chosen trusted issuer list for the verifier. Verify genesis hash/network, real issuance, tamper/issuer/replay failures and timeout reconciliation before enabling for users. No automatic replacement of expired transactions and no revocation system.
-- ElevenLabs: verify voice ID/model access, microphone permission denial, actual playback/transcription and edited text submission. Server bounds audio bytes; the 90-second recording limit is enforced by the browser.
-- Composio: create GitHub auth configuration with only the permissions your selected repositories require. Connect from BeProgram so the Composio user ID matches the verified app identity. The runtime uses the documented v3.1 auth-link/account/proxy API and validates the connection before every operation. Validate these exact schemas against your connection before enablement. Test approved comments only on an authorized demo PR. No connection or external write was performed by building this repository.
+Before any future hosted release, explicitly design authentication, persistent storage/backups, local model placement, TLS, request limits, resource capacity and costs; validate Docker and PostgreSQL concurrency. Do not turn on paid hosted providers as an automatic fallback. Nothing has been published or deployed externally.
 
-No host, domain, TLS certificate, provider account, wallet funding, CI secret, or public release has been created. The Docker/compose assets are prepared but require a Docker-capable deployment environment to execute and verify.
+## References
+
+- Ollama local-only configuration: https://docs.ollama.com/faq
+- Native JSON-schema outputs: https://docs.ollama.com/capabilities/structured-outputs
+- Model/download size and license information: https://ollama.com/library/qwen2.5-coder:7b
+
+These confirm runtime capabilities, not the accuracy of BeProgram's assessments. The live model results and remaining human review belong in `docs/VERIFICATION.md`.

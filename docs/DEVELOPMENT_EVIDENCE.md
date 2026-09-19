@@ -1,3 +1,5 @@
+> Current free local edition: OpenAI inference has been replaced with local Ollama/Qwen2.5-Coder. See VERIFICATION.md and the actual-model JSON reports for new runtime evidence. Historical sponsor and hosted-provider notes below are not current track claims. Codex's development assistance is separate from the models used by the product.
+
 # Development evidence (not sponsor submission proof)
 
 | Task | Coding-assistant contribution | Artifact/check | Human verification |

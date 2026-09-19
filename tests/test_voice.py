@@ -25,6 +25,8 @@ def test_transcript_requires_explicit_review_and_submission(app_env, monkeypatch
     from backend.voice import ElevenLabs
     c,_,_,_,config=app_env
     config.elevenlabs_api_key='test-only'; config.elevenlabs_voice_id='test-only'
+    # Historical route contract exercised only with an explicitly injected test adapter.
+    monkeypatch.setattr(ElevenLabs,'ready',lambda self: None)
     monkeypatch.setattr(ElevenLabs,'transcribe',lambda self,content,mime: GOOD)
     _,s=start(c);cp=change(c,s).json()['checkpoint']
     url='/v1/audio/transcriptions'

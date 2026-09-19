@@ -27,7 +27,7 @@ class Controller {
     const token=publicRequest?'':await this.context.secrets.get('beprogram.token:'+origin);
     if(!publicRequest&&!token)throw Error('Connect your account first. Your token stays in VS Code SecretStorage.');
     let response;
-    try {response=await fetch(origin+route,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(40000)});}
+    try {response=await fetch(origin+route,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(135000)});}
     catch {throw Error('Cannot reach BeProgram. Check the backend address, then refresh to reconcile saved work.');}
     const value=await response.json().catch(()=>({}));
     if(!response.ok) {
@@ -115,7 +115,7 @@ class Controller {
     if(!payload.files.length){this.state.notice='No eligible saved changes in the approved scope.';return;}
     const doc=await this.vscode.workspace.openTextDocument({language:'json',content:JSON.stringify(payload,null,2)});
     await this.vscode.window.showTextDocument(doc,{preview:true,preserveFocus:true});
-    const consent=await this.vscode.window.showInformationMessage('Send the exact previewed saved changes to BeProgram and OpenAI? Unsaved buffers are excluded.',{modal:true},'Approve capture');
+    const consent=await this.vscode.window.showInformationMessage('Send the exact previewed saved changes to your local BeProgram model? No hosted AI is used. Unsaved buffers are excluded.',{modal:true},'Approve capture');
     if(consent!=='Approve capture')throw Error('Capture cancelled. Nothing was uploaded and no AI request was sent.');
     const result=await this.request('/v1/sessions/'+this.active.sessionId+'/changes','POST',payload);
     if(result.checkpoint){if(this.checkpoint?.id!==result.checkpoint.id)this.draft=null;this.checkpoint=result.checkpoint;}

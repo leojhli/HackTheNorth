@@ -13,6 +13,24 @@ from tests.conftest import start, change, answer, GOOD
 import pytest
 
 
+def test_disabled_receipt_routes_never_contact_rpc(app_env, monkeypatch):
+    from backend.receipts import RPC
+    client, _, _, _, config = app_env
+    assert config.solana_enabled is False
+    def forbidden(*args, **kwargs):
+        pytest.fail('Disabled receipts must not contact Solana')
+    monkeypatch.setattr(RPC, 'call', forbidden)
+    for method, route, body in [
+        ('POST', '/v1/verify', {'manifest': {}, 'signature': 'a' * 88}),
+        ('POST', '/v1/receipts/old-record/reconcile', None),
+        ('GET', '/v1/receipts/old-record', None),
+    ]:
+        response = client.request(method, route, json=body)
+        assert response.status_code == 503
+        assert response.json()['code'] == 'receipts_disabled'
+    assert client.get('/v1/config').json()['capabilities']['receipts'] is False
+
+
 class FixtureRPC:
     timeout = False
     sends = 0

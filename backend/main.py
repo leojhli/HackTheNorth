@@ -10,7 +10,7 @@ from sqlalchemy import text
 from .config import settings
 from .db import Database, Attempt
 from .auth import Auth
-from .assessment import OpenAIAssessor
+from .assessment import LocalAssessor
 from .service import CheckpointService, owned, record
 from .contracts import ProjectInput, ScopeInput, SessionInput, ChangeInput, AnswerInput, AskInput
 from .errors import AppError
@@ -22,7 +22,7 @@ def create_app(config=None, database=None, assessor=None):
     database = database or Database(config.database_url)
     if config.environment != 'production':
         database.migrate()
-    service = CheckpointService(database, assessor or OpenAIAssessor(config), config)
+    service = CheckpointService(database, assessor or LocalAssessor(config), config)
     auth = Auth(config)
     observability.configure(config)
     app = FastAPI(title='BeProgram', version='0.1.0')
@@ -75,11 +75,13 @@ def create_app(config=None, database=None, assessor=None):
 
     @app.get('/v1/config')
     def public_config():
+        ai = service.assessor.status() if hasattr(service.assessor, 'status') else {'available': True, 'provider': 'test-only-fixture', 'model': 'test-only-fixture', 'message': 'Injected test fixture; not live inference.'}
         return {'auth_mode': config.auth_mode, 'supabase_url': config.supabase_url, 'supabase_publishable_key': config.supabase_publishable_key,
-                'capabilities': {'assessment': bool(config.openai_api_key), 'managed_ai': bool(config.openai_api_key),
-                    'voice': bool(config.elevenlabs_api_key and config.elevenlabs_voice_id),
+                'ai': ai, 'cost_mode': 'local_only',
+                'capabilities': {'assessment': ai['available'], 'managed_ai': ai['available'],
+                    'voice': False,
                     'receipts': bool(config.solana_enabled and config.solana_issuer_key),
-                    'github': bool(config.composio_api_key and config.composio_github_auth_config_id)},
+                    'github': False},
                 'integration': 'beprogram_managed', 'provenance_note': 'A diff does not establish AI authorship.'}
 
     @app.get('/v1/projects')

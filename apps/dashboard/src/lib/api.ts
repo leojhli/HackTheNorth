@@ -1,7 +1,7 @@
-export type Config = { auth_mode: 'supabase' | 'local'; supabase_url: string; supabase_publishable_key: string; capabilities: { assessment: boolean; managed_ai: boolean; voice: boolean; receipts: boolean; github: boolean } }
+export type Config = { ai?: {available:boolean;provider:string;model:string;message:string}; cost_mode?:string; auth_mode: 'supabase' | 'local'; supabase_url: string; supabase_publishable_key: string; capabilities: { assessment: boolean; managed_ai: boolean; voice: boolean; receipts: boolean; github: boolean } }
 export type Project = { id: string; name: string; scope: string[]; exclusions: string[]; scope_hash: string }
 export type Session = { id: string; project_id: string; status: string; created: number }
-export type Evaluation = { decision: 'pass' | 'follow_up' | 'unable_to_assess'; feedback: string; next_question: string | null; gaps: string[] }
+export type Evaluation = { model?: string; decision: 'pass' | 'follow_up' | 'unable_to_assess'; feedback: string; next_question: string | null; gaps: string[] }
 export type Attempt = { id: string; key: string; answer: string; modality: string; state: string; evaluation: Evaluation | null; version: number }
 export type SourceFile = { path: string; edits: { before_start: number; after_start: number; removed: string[]; added: string[] }[]; lines: { number: number; text: string }[] }
 export type Checkpoint = { id: string; project_id: string; session_id: string; status: string; version: number; snapshot_hash: string;
@@ -16,7 +16,7 @@ export class ApiError extends Error { constructor(public code: string, message: 
 export async function api<T = any>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const form = body instanceof FormData
   const response = await fetch(path, { method, headers: { ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}), ...(!form && body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-    body: body === undefined ? undefined : form ? body : JSON.stringify(body), signal: AbortSignal.timeout(40000) })
+    body: body === undefined ? undefined : form ? body : JSON.stringify(body), signal: AbortSignal.timeout(135000) })
   if (!response.ok) { const error = await response.json().catch(() => ({})); throw new ApiError(error.code || 'unavailable', error.message || 'The request failed. Refresh to reconcile saved state.', !!error.retryable) }
   if (response.headers.get('Content-Type')?.startsWith('audio/')) return await response.blob() as T
   return await response.json() as T

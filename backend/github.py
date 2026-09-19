@@ -7,7 +7,6 @@ import re
 import time
 from urllib.parse import quote, urlparse
 from typing import Literal
-import httpx
 from pydantic import Field
 from sqlalchemy import select
 from .contracts import Strict, FileChange
@@ -38,15 +37,7 @@ class ComposioGitHub:
         self.config = config
 
     def core(self, method, path, body=None):
-        if not self.config.composio_api_key or not self.config.composio_github_auth_config_id:
-            raise AppError('github_unconfigured', 'Configure the Composio GitHub auth integration on the server.', 503)
-        try:
-            r = httpx.request(method, 'https://backend.composio.dev/api/v3.1'+path,
-                headers={'x-api-key': self.config.composio_api_key}, json=body, timeout=20)
-            r.raise_for_status()
-            return r.json() if r.content else {}
-        except Exception:
-            raise AppError('github_unavailable', 'Composio/GitHub is unavailable or access was denied. No automatic publication retry will occur.', 503, True) from None
+        raise AppError('github_disabled', 'Composio is disabled in this free local edition. Capture your local Git changes instead.', 503)
 
     def link(self, owner):
         result = self.core('POST', '/connected_accounts/link', {'user_id': owner, 'auth_config_id': self.config.composio_github_auth_config_id,

@@ -31,7 +31,7 @@ class CheckpointService:
 
     @contextmanager
     def serial(self, owner):
-        """Database lease: one paid operation per owner, including across server workers."""
+        """Database lease: one inference operation per owner, including across server workers."""
         token, now = uid(), time.time()
         try:
             with self.database.transaction() as db:
@@ -174,7 +174,7 @@ class CheckpointService:
                     raise AppError('checkpoint_unresolved', 'Resolve the existing checkpoint before submitting another change. Keep new edits locally.', 409)
                 if not existing:
                     existing = Checkpoint(owner=owner, project_id=project.id, session_id=session.id,
-                        snapshot_hash=snapshot_hash, snapshot=snap, status='pending', model=self.config.openai_model)
+                        snapshot_hash=snapshot_hash, snapshot=snap, status='pending', model=getattr(self.assessor, 'model_id', 'test-only-fixture'))
                     db.add(existing)
                     db.flush()
                 # An analysis interrupted by process death remains pending and can be retried explicitly.
@@ -225,6 +225,7 @@ class CheckpointService:
                 self.verify_lease(db, owner, lease)
                 cp = owned(db, Checkpoint, id, owner)
                 cp.question = q.model_dump()
+                cp.model = getattr(self.assessor, 'model_id', 'test-only-fixture')
                 cp.status = {'assess': 'pending', 'skip': 'skipped', 'unable_to_assess': 'unavailable'}[q.decision]
                 cp.last_error = None
                 return self.detail(db, cp)
@@ -271,7 +272,7 @@ class CheckpointService:
                 cp, attempt = owned(db, Checkpoint, id, owner), owned(db, Attempt, attempt_id, owner)
                 if cp.version != data.version or cp.snapshot_hash != data.snapshot_hash:
                     raise AppError('stale_version', 'A newer result exists. Refresh this checkpoint.', 409)
-                attempt.state, attempt.evaluation = 'completed', result.model_dump()
+                attempt.state, attempt.evaluation = 'completed', {**result.model_dump(), 'model': getattr(self.assessor, 'model_id', 'test-only-fixture')}
                 cp.status = {'pass': 'passed', 'follow_up': 'needs_followup', 'unable_to_assess': 'unavailable'}[result.decision]
                 cp.version += 1
                 cp.last_error = None

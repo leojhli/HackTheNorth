@@ -1,30 +1,71 @@
-# BeProgram
+# BeProgram - free local edition
 
-Explain meaningful saved code changes, receive contextual questions and follow-ups, and keep private evidence of understanding. The live app uses the supplied Figma Make components, icons, dark/light tokens, and checkpoint/history layouts. The original prototype orchestration remains reference source; it is not the production entry point.
+A VS Code learning checkpoint for meaningful saved code changes, with a supporting history dashboard. Questions, adaptive evaluation and Managed Ask AI run on **Qwen2.5-Coder through local Ollama**. No model API key, paid plan, subscription, trial or inference credits are required. The app and SQLite history run on your own computer.
 
-Read [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for milestone status and unmet acceptance checks. This repository is an implementation, not a claim that paid providers, an external coding assistant, or a deployment have been connected.
+The existing Figma components and styling are retained; navigation hides the deferred receipt verifier. Only BeProgram Managed Ask AI is gated; Claude, Codex, Copilot and manual editing remain independent. Model suggestions open in an editor document and are not automatically applied.
 
-**VS Code is the primary learning surface.** Install the local artifacts/beprogram-companion.vsix through **Extensions: Install from VSIX…**, open a trusted Git project and click the BeProgram Activity Bar icon. Capture, questions, explanations, follow-ups, pause/retry and verified results stay in the sidebar. See [extension setup](apps/vscode-extension/README.md). The website remains the supporting dashboard.
+## Windows setup
 
-## Run locally
-
-Prerequisites: Python 3.12+, Node 22.12+, Git. This Windows workspace also has ignored local runtimes under `.tools`.
+Requirements: Python 3.12+, Node 22.12+, Git and VS Code. This workspace already has Python/Node under `.venv`/`.tools`. Local AI needs approximately 10 GB of free disk including the download/runtime/model. The inspected PC has 16 GB RAM and an RTX 2070 with 8 GB VRAM. CPU execution is possible but can be substantially slower.
 
 ```powershell
 ./scripts/setup-local.ps1
 ./scripts/run-local.ps1
 ```
 
-Open http://127.0.0.1:8000. The setup script creates `.env` only if absent, with an explicitly local identity and a random `LOCAL_DEV_TOKEN`. Enter that token in the local sign-in screen. It is not a Supabase password. Add your OpenAI key in `.env` to enable real assessments, then restart the API to load configuration changes. Keep secrets out of chat and Git.
+Setup installs dependencies, builds the site/sidebar, creates `.env` only if absent, installs a checksum-verified portable Ollama runtime and downloads the local model. The first download requires internet (about 1.5 GB runtime ZIP + 4.7 GB model). Runtime and models live in `%LOCALAPPDATA%/BeProgram/ollama`, outside OneDrive. No administrator installer, account, startup service or system PATH modification is used.
 
-Portable manual setup:
+For this existing workspace, the configuration has already been converted to local AI. On later launches, use `./scripts/run-local.ps1`. It starts the model server, then the backend at http://127.0.0.1:8000. Keep that backend terminal open.
+
+1. Install `artifacts/beprogram-companion.vsix` with VS Code's **Extensions: Install from VSIX...** and reload if prompted. Version 0.3.0 includes local-model messaging and longer request timeouts.
+2. Open a trusted local Git project and click BeProgram in the Activity Bar.
+3. Connect using `LOCAL_DEV_TOKEN` from your ignored `.env`. This randomly generated local password is **not an API key**. The extension stores it in VS Code SecretStorage.
+4. Choose project scope (for this repository, try `apps/dashboard/src`), save a meaningful edit, review the source preview and approve capture.
+5. Answer the question, complete any follow-up and use Managed Ask AI after the persisted pass. History is also available in the dashboard.
+
+The model server runs separately in the background. To release its memory:
+
+```powershell
+./scripts/stop-local-ai.ps1
+```
+
+## Configuration and troubleshooting
+
+`.env.example` contains all settings needed for the free local flow. Keep `.env` private. Existing provider keys are unnecessary; legacy OpenAI keys are ignored and hosted voice/Composio/Sentry cannot be enabled by setting old keys.
+
+| Setting | Purpose |
+| --- | --- |
+| `AUTH_MODE=local`, `LOCAL_DEV_TOKEN` | Loopback-only local identity; no sign-up service |
+| `DATABASE_URL=sqlite:///./beprogram.db` | Persistent local history |
+| `OLLAMA_URL=http://127.0.0.1:11435` | Isolated local model endpoint; remote endpoints rejected |
+| `OLLAMA_MODEL=qwen2.5-coder:7b` | Default free downloaded weights |
+| `OLLAMA_CONTEXT=16384` | Context window; conservative input bounds prevent silent truncation |
+| `OPERATION_TIMEOUT=120`, `LEASE_SECONDS=180` | Local inference time budget and durable operation lease |
+
+If the model is missing, run `./scripts/setup-local-ai.ps1`. If unavailable, run `./scripts/start-local-ai.ps1`, then Refresh in BeProgram. The config endpoint checks installed model metadata; a green availability result is not an assessment-quality guarantee. A failed generation preserves the checkpoint and never grants a false pass. Initial model loading takes longer than subsequent calls.
+
+If your machine struggles, use the smaller model:
+
+```powershell
+./scripts/setup-local-ai.ps1 -Model qwen2.5-coder:3b
+# Set OLLAMA_MODEL=qwen2.5-coder:3b in .env, then restart BeProgram.
+```
+
+The smaller model may assess reasoning less reliably. Both permitted model names refer to local weights. Ollama Cloud is disabled by the launcher; the backend rejects remote model metadata and never falls back to a hosted model. Input exceeding the configured context budget fails explicitly. For a saved oversized checkpoint, increase `OLLAMA_CONTEXT` up to 32768 if memory permits and retry; use smaller scopes for future projects. Do not silently discard evidence to obtain a pass.
+
+## Other operating systems
+
+Install the free Ollama runtime from https://ollama.com/download, then run a dedicated local server:
 
 ```sh
+OLLAMA_HOST=127.0.0.1:11435 OLLAMA_NO_CLOUD=1 OLLAMA_NUM_PARALLEL=1 ollama serve
+# In another terminal:
+OLLAMA_HOST=127.0.0.1:11435 ollama pull qwen2.5-coder:7b
 python -m venv .venv
-# Windows: .venv/Scripts/activate; macOS/Linux: source .venv/bin/activate
+# Activate .venv for your shell.
 pip install -r backend/requirements.lock.txt
 cp .env.example .env
-# Configure Supabase, or AUTH_MODE=local plus a random 32+ character LOCAL_DEV_TOKEN.
+# Set LOCAL_DEV_TOKEN to a freshly generated random value of at least 32 characters.
 python -m backend.migrate
 cd apps/dashboard
 npm ci
@@ -33,73 +74,47 @@ cd ../..
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
-For frontend development, run `npm run dev` in `apps/dashboard` alongside the API on port 8000. Vite listens on 127.0.0.1:5173 and proxies `/v1`. OpenAPI contracts are at `/docs`.
-
-## Core workflow
-
-1. Connect an account, create a project, and specify approved source paths (for example `src`). Start the session.
-2. Capture saved Git changes with the CLI below or [VS Code companion](apps/vscode-extension/README.md). Inspect the generated JSON before uploading it via **Review current changes**. There is no seeded passing history.
-3. Submit an explanation. OpenAI evaluates intent, mechanism, and reasoning against the frozen snapshot. A vague explanation gets a focused follow-up; a complete first answer can pass immediately. Missing credentials or provider errors preserve unresolved state.
-4. A persisted pass updates history and permits the next **Managed Ask AI** request. Other assistants and manual editing remain available. The website cannot see unsubmitted local edits.
+For frontend development use `npm run dev` in `apps/dashboard`; Vite proxies `/v1` to port 8000. API contracts are at `/docs`. The local capture CLI remains available:
 
 ```sh
 python -m integrations.capture /path/to/git/project --scope src > capture.json
 ```
 
-The companion compares saved working-tree content against HEAD, includes staged and unstaged changes without modifying the index, honors ignored/excluded files, rejects likely secrets/binaries, and uploads only explicitly approved scope. A fresh repository without HEAD captures eligible staged and untracked files. Context is capped at 200 changed and 300 surrounding lines and labeled when partial.
+Capture checks saved Git changes against HEAD without changing staging. It excludes ignored/generated/binary/likely-secret files, bounds context, previews approved source and preserves source provenance. A diff does not establish AI authorship.
 
-For CLI-controlled requests, set `BEPROGRAM_TOKEN` in your shell (not a command checked into Git), then:
+## Optional features and track changes
 
-```sh
-python -m integrations.capture /path/to/project --scope src --submit --session SESSION_ID --ask "Help with the next change"
-```
+- **Voice:** hosted ElevenLabs speech and transcription are disabled. Typed explanations remain the complete supported input path; there is no simulated or secretly cloud-backed voice replacement.
+- **GitHub publication:** Composio is disabled. Local Git capture still works; no PR comment is published. A direct free GitHub adapter is future work.
+- **Telemetry:** hosted Sentry delivery is disabled; there is no monitoring subscription requirement.
+- **Solana:** deferred by product decision. Receipts and the verifier are hidden from the core demo; disabled API routes do not contact Solana. The implementation is retained for possible future use, but the Solana track is no longer targeted. No wallet or blockchain setup is needed.
+- **Hosting/auth:** local SQLite and the token remove the need for Supabase or hosted infrastructure for this demo. Historical production Supabase/PostgreSQL support remains separate, optional and unverified in this delivery.
 
-This reconciles saved changes before calling the managed assistant. The separate VS Code extension offers the same boundary and renders the checkpoint directly in its sidebar. It does not install hooks into Claude Code, Codex, or Copilot; those clients are not gated. Suggestions are returned in an editor document, not automatically applied to source files.
-
-## Configuration
-
-All service keys stay on the FastAPI server. `.env.example` lists the variables.
-
-| Service | Configure | Behavior when absent |
-| --- | --- | --- |
-| OpenAI | `OPENAI_API_KEY`, `OPENAI_MODEL` | Assessment/Ask AI unavailable; no fake evaluation |
-| Supabase Auth | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`; asymmetric signing keys | Use explicit local mode for development only; production refuses local mode |
-| PostgreSQL | `DATABASE_URL=postgresql+psycopg://...` | SQLite for local development only |
-| Sentry | `SENTRY_DSN` | Product still works; no telemetry delivery claim |
-| ElevenLabs | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` | Voice controls hidden; text available |
-| Solana | `SOLANA_ENABLED=true`, Devnet RPC, funded test `SOLANA_ISSUER_KEY` JSON byte array, independently selected `SOLANA_TRUSTED_ISSUERS` | Receipt issuance hidden; verifier reports unknown/unavailable rather than success |
-| Composio | `COMPOSIO_API_KEY`, `COMPOSIO_GITHUB_AUTH_CONFIG_ID` | GitHub controls hidden |
-
-Supabase users should be invited/created through your configured Auth project; self-service signup/password recovery is not implemented. Configure asymmetric JWT signing (ES256/RS256), expected issuer and audience. The app never exposes a service-role key. PostgreSQL tables use a private `beprogram` schema, not the default public API schema. Do not add it to Supabase's exposed schemas.
-
-## Optional integrations
-
-- **Receipts:** connect a test wallet with message signing, sign a fresh scoped challenge, inspect the exact digest-only memo and disclosure, then approve. Signed transaction bytes and signature are persisted before broadcast. Reconciliation rebroadcasts only identical bytes. An expired transaction is shown as expired; replacement issuance is not automatic. Private evidence exports contain code and explanations—share deliberately. Devnet can reset. **Revocation is not supported.** Integrity and issuer identity do not establish assessment quality or current wallet control.
-- **Independent verifier:** the website verifier reads trusted Devnet RPC directly, without reading the history database. A standalone verifier can run separately with its own trusted issuer list:
-
-```sh
-python apps/receipt-verifier/verify.py receipt.json --trusted-issuer ISSUER_PUBLIC_KEY
-```
-
-- **Voice:** actual browser microphone capture, visible recording/Stop/Cancel, 90-second client limit and 10 MB server limit, ElevenLabs transcription, editable transcript, then explicit text submission. No audio is saved in the application database; temporary spooled files are closed. Provider retention depends on the ElevenLabs account. In-editor microphone support is not claimed.
-- **GitHub:** connect through Composio, enter an exact repository/PR, inspect frozen base/head and included scope, and approve capture. Only selected passed PR checkpoints can generate a summary. The exact comment/destination is previewed and approved separately. Head changes block publishing. An uncertain write is reconciled by its unique comment marker and never blindly retried. No merge, approval, or code modification occurs. No comments were published during development.
+OpenAI, ElevenLabs, Composio, Sentry and Solana are no longer active track claims in this edition. Prior implementation evidence is retained as history. Overall/developer-tool eligibility and any local-model track must be checked against actual event rules; no prize eligibility is asserted.
 
 ## Verification
 
 ```sh
 python -m pytest tests -q --tb=short
+python -m scripts.verify_local_ai  # Actual local inference, synthetic examples, disposable DB
+python -m scripts.check_local_misconceptions
 cd apps/dashboard
 npm run build
-npx playwright install chromium
 npm run test:e2e
+cd ../vscode-extension
+npm test
+npm run test:host
+npm run package
 ```
 
-On this Windows sandbox, Vite child processes, browser downloads, and pytest temporary databases require approved execution outside the sandbox. Tests use explicit evaluator/RPC/GitHub doubles and a disposable test database. Those doubles are never selectable in the live app. Automated UI tests run the built frontend against the actual FastAPI routes with a test-only evaluator.
+Browser/host tests inject explicit test-only evaluators, never production mocks. The live local smoke command uses the actual model for three different changes, vague-answer follow-ups, immediate pass, persistence/restart and managed requests. It writes synthetic evidence to `docs/local-model-smoke.json`. See `docs/VERIFICATION.md` for results and remaining quality checks.
 
-Latest results: **29 backend tests and 3 browser scenarios passed**, TypeScript/Vite builds, 7 extension unit tests and 6 actual VS Code host integration check groups passed. Desktop/mobile and light-theme screenshots were inspected. If browser installation is unavailable, set `BEPROGRAM_BROWSER_EXECUTABLE` to an installed Chrome executable before `npm run test:e2e`.
+Verified here: 47 backend tests, 3 browser scenarios, 7 extension unit tests, 6 actual host check groups, three real-model flows and six rejection cases.
 
-See [docs/VERIFICATION.md](docs/VERIFICATION.md) for exact results and pending live checks. Twenty representative OpenAI answers still need human review before calling the PRD acceptance complete. No latency benchmark or sponsor eligibility is claimed.
+A small local model is not guaranteed to match a hosted model's judgment. Keep the original human-review requirement: review at least 20 representative explanations before claiming reliable assessment quality. No cloud bill is required, but the computer, disk, electricity and initial download are your own resources.
 
-## Deploy
+See `IMPLEMENTATION_PLAN.md` for the living delivery record and `docs/DEPLOYMENT.md` for operation and deployment boundaries.
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Build the Docker image, configure Supabase Auth/PostgreSQL and server secrets, run the migration, then serve the API/static app behind HTTPS. A deployment has not been created automatically.
+## Next: review and rehearse
+
+See [the three-minute demo guide](docs/DEMO_REHEARSAL.md) and [the 20-answer human-review worksheet](docs/assessment-review/HUMAN_REVIEW.md). Create a fresh isolated Git example with `python -m scripts.prepare_demo`. Run the actual local evaluation set with `python -m scripts.evaluate_local_ai`; agent-authored expected labels are not a completed human review.

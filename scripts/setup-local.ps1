@@ -11,7 +11,7 @@ if (Test-Path $localUv) {
 if ($LASTEXITCODE -ne 0) { throw 'Backend dependency install failed.' }
 if (-not (Test-Path '.env')) {
     & '.venv/Scripts/python.exe' -c "from pathlib import Path; import secrets; p=Path('.env.example').read_text(); p=p.replace('AUTH_MODE=supabase','AUTH_MODE=local',1).replace('LOCAL_DEV_TOKEN=','LOCAL_DEV_TOKEN='+secrets.token_urlsafe(32),1); Path('.env').write_text(p)"
-    Write-Output 'Created ignored .env with a local-only token. Configure server API keys there; do not paste them into chat.'
+    Write-Output 'Created ignored .env with a local-only token. No provider API keys are required.'
 }
 & '.venv/Scripts/python.exe' -m backend.migrate
 if ($LASTEXITCODE -ne 0) { throw 'Database migration failed. Check .env before continuing.' }
@@ -23,3 +23,5 @@ try { npm.cmd ci --offline=false --no-audit --no-fund; if ($LASTEXITCODE -ne 0) 
 Write-Output 'Start: .venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log'
 & npm.cmd --prefix apps/dashboard run build:extension
 if ($LASTEXITCODE -ne 0) { throw 'VS Code sidebar build failed.' }
+& (Join-Path $PSScriptRoot 'setup-local-ai.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'Local model setup failed.' }

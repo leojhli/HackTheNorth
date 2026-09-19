@@ -67,7 +67,7 @@ export default function SidebarApp(){
     </nav>
     {(state.error||localError)&&<div role="alert" className="p-3"><InlineNotice kind="error">{localError||state.error}{!state.connected&&<Button variant="text" onClick={()=>action('connect')}>Connect account</Button>}</InlineNotice></div>}
     {state.notice&&<div role="status" className="px-3 pt-3"><InlineNotice kind="info">{state.notice}</InlineNotice></div>}
-    {state.config&&!state.config.capabilities.assessment&&<p className="px-4 pt-3 text-[12px] leading-5 text-secondary">OpenAI is not configured on the backend. Add the server API key and restart it to assess changes.</p>}
+    {state.config&&!state.config.capabilities.assessment&&<p className="px-4 pt-3 text-[12px] leading-5 text-secondary">{state.config.ai?.message || 'Start the local model server, then refresh. No API key is required.'}</p>}
     {working&&<p role="status" className="px-4 pt-3 text-[12px] text-secondary">{state.operation==='connect'?'Complete the VS Code connection prompts.':state.operation==='capture'?'Review and approve the saved source preview in VS Code.':'Working… your result is saved before the AI gate changes.'}</p>}
     <fieldset disabled={working} className="m-0 flex min-w-0 flex-1 flex-col border-0 p-0"><ExtensionPanel s={s} a={actions}/></fieldset>
     <p className="border-t border-subtle px-4 py-3 text-[11px] leading-[17px] text-secondary">Only BeProgram Managed Ask AI is gated. Manual edits and other assistants remain available. Capture covers approved saved Git changes; unsaved buffers are excluded.</p>

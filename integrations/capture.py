@@ -77,7 +77,7 @@ def main():
     if not args.api.startswith(('https://', 'http://127.0.0.1:', 'http://localhost:')):
         parser.error('Use HTTPS or a loopback API address')
     headers = {'Authorization': 'Bearer ' + os.environ['BEPROGRAM_TOKEN']}
-    with httpx.Client(base_url=args.api, headers=headers, timeout=40) as client:
+    with httpx.Client(base_url=args.api, headers=headers, timeout=135) as client:
         if payload['files']:
             result = client.post(f'/v1/sessions/{args.session}/changes', json={k: payload[k] for k in ('files', 'provenance', 'idempotency_key')})
             result.raise_for_status()

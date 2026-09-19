@@ -1,3 +1,53 @@
+# Focused demo and assessment review (19 September 2026)
+
+This update supersedes the older counts and Solana acceptance target below.
+
+Final calibration run: **18/20 outcomes matched the fixed agent labels**, with **zero accepted false passes**, one unfair follow-up on a complete answer and one operational refusal (`ungrounded_local_pass`) on a correct paraphrase. Thus two complete answers were not passed; the operational count overlaps that total. **Measured evaluation p95 was 75.765 seconds** (maximum 177.672 seconds), so the original under-ten-second target is not met. These are wall-clock measurements from this run, not a representative hardware benchmark. Human review remains incomplete.
+
+- **49 backend tests passed** (9.03 seconds; two existing dependency deprecation warnings). New regressions cover disabled receipt routes making no RPC calls and the local model follow-up output contract. **3 browser scenarios passed** (18.6 seconds); website build passed with the existing bundle-size advisory. Default navigation has no verifier, its direct route explains that receipts are disabled, and mobile/desktop screenshots were refreshed.
+- Solana remains implemented but disabled in local configuration. Its track claim is withdrawn. After restarting the final backend, `/v1/config` returned local inference enabled and receipts/voice/GitHub disabled; `/v1/verify` returned `503 receipts_disabled`.
+- A real-model API rehearsal completed capture, question, weak-answer follow-up, complete-answer pass, managed request, history and restored app state. Four inference operations took 4.26, 4.77, 3.94 and 1.83 seconds. **This is integration evidence, not a clean assessment-quality pass:** the generated rubric falsely says Set does not preserve order; vague-answer feedback also credits reasoning not supplied by the learner. Raw evidence: `demo-rehearsal-result.json`.
+- The response contract now requires quotation extraction before grading and an explicit follow-up question string. A passing empty question is normalized to public null; missing follow-up questions and unsupported passing evidence still fail closed. No fabricated replacement answer or forced pass is introduced.
+- `assessment-review/` retains the baseline, unsuccessful trials, latest actual-model measurements and a blank human worksheet. Expected labels are agent-authored; after tuning, this is calibration data, not held-out accuracy. Semantic grading and question-generation defects remain open.
+- `DEMO_REHEARSAL.md` and `python -m scripts.prepare_demo` provide a disposable Git example without modifying real projects or seeding history. Human review and operating the actual sidebar yourself remain pending. The extension source/package was unchanged in this milestone; its prior 7 unit tests / 6 host groups are historical verification, not rerun claims.
+
+# Free local edition verification (19 September 2026)
+
+This section supersedes the hosted-provider setup/acceptance instructions below. Earlier records remain historical evidence, not active services or current track claims.
+
+- **47 backend tests passed** in the final run (12.16 seconds), with two third-party deprecation warnings. Includes native Ollama JSON-schema contract, blocked cloud endpoints/models, redirected endpoints, missing model, timeout, context limits, incomplete/malformed output, unsupported passing quotations, persistence/gate behavior and legacy keys unable to activate paid services.
+- **3 browser scenarios passed** (15.4 seconds) against actual API/persistence with an explicit fixture evaluator. The new Connected services labels distinguish local assessment and disabled hosted features. Website/sidebar builds pass. The existing >500 KB website-bundle advisory remains; it is not a build failure.
+- **7 extension unit tests and 6 VS Code host integration groups passed** for version 0.3.0. The host test ran the exact extracted final VSIX, not merely source. It verifies real webview/React handshake, CSP/token boundary, Git preview/approval, follow-up/version/restart, history/managed gate and SecretStorage clearing with a test-only evaluator.
+- VSIX: `artifacts/beprogram-companion.vsix`; SHA256 `7c4b52307314dc836416062bc7a2fa786cdffb8da9927d85fb0a7970e2497810`. Packaged runtime files match source byte-for-byte. Updated host record: `docs/extension-host-results.json`.
+- **Actual local inference:** portable Ollama v0.34.2, Qwen2.5-Coder 7B, RTX 2070 8 GB, 16 GB RAM. The official runtime ZIP SHA256 was checked and model download digest verification succeeded. Logs confirmed `Ollama cloud disabled: true`; dedicated server listens on 127.0.0.1:11435. `/v1/config` reports local_only, assessment available, hosted voice/GitHub disabled. Backend runs on loopback with SQLite/local auth.
+- **Three actual-model flows passed** in an isolated database: SQL parameter binding (weak answer/follow-up/pass), null guard (first-answer pass), nonmutating sort (weak answer/follow-up/pass), each followed by a real local Managed Ask AI response. History survived app recreation. Final run: 11 inference calls, 1.45-4.89 seconds each after model load. An earlier cold-load call took 15.5 seconds. This is not the PRD's 20-request p95 benchmark. See `local-model-smoke.json`.
+- **Six actual-model rejection checks stayed blocked:** five wrong/vague explanations got follow-ups; one grading-instruction attack still led the model to attempt a pass, but the server rejected it because its supporting quotations were not in the learner's answer. This last result is a server-side operational rejection, not a correct model grade. See `local-model-misconceptions.json`. No claim of general prompt-injection immunity is made.
+- Visual evidence: desktop/mobile (1440/390 px), sidebar (360/800 px), dark/light scenarios pass; mobile checkpoint and wide light sidebar images were inspected. Original design tokens, layout and navigation remain. Screenshots use clearly synthetic test data. Source `index.css` and icons were not redesigned.
+
+## Findings that changed implementation
+
+The first model attempt skipped a meaningful SQL change because it lacked author motivation. Only the deterministic capture filter now skips identical/whitespace edits; local-model uncertainty stays unresolved. A second attempt invented query performance requirements. Prompts now constrain rubrics to visible purpose, mechanism and one relevant limit/tradeoff, and evaluate the latest answer afresh. A later grading-instruction attack exposed an unsupported pass. Local passing evaluations must now supply three exact excerpts from learner explanations; nonexistent quotations fail closed. A backend regression verifies that failed proof preserves the answer and keeps the gate locked.
+
+All successful flow checks were repeated after these changes. Small-model judgment still needs broader review. **The 20-answer human review, representative held-out accuracy/false-pass evaluation, 20-request latency benchmark and a real user pilot remain outstanding.** Free local operation does not imply equivalent hosted-model quality or certified mastery. Conservative question handling may leave nonbehavioral edits beyond whitespace unresolved.
+
+## Rerun the current checks
+
+```powershell
+.venv/Scripts/python.exe -m pytest tests -q --tb=short
+.venv/Scripts/python.exe -m scripts.verify_local_ai
+.venv/Scripts/python.exe -m scripts.check_local_misconceptions
+# With Node/npm available:
+npm --prefix apps/dashboard run build
+npm --prefix apps/dashboard run test:e2e
+npm --prefix apps/vscode-extension run test:host
+```
+
+Run the website build before backend tests, not concurrently: app creation mounts the built assets and Vite replaces that directory during a build. In this workspace, set `BEPROGRAM_BROWSER_EXECUTABLE` to the installed Chrome executable if Playwright Chromium is absent. Live scripts use synthetic source, temporary databases and actual local inference; they do not alter user projects, call paid services or publish anything.
+
+Hosted OpenAI/ElevenLabs/Composio/Sentry acceptance is no longer a delivery target for this edition. Public deployment and live optional Devnet receipts remain separate, unverified work. The following historical record documents the previous implementation.
+
+---
+
 # Verification record
 
 Recorded 19 September 2026. Local automated evidence is distinct from provider-backed acceptance.

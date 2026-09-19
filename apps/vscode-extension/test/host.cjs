@@ -83,7 +83,7 @@ exports.run=async()=>{
     assert.equal(await controller.context.secrets.get('beprogram.token:http://127.0.0.1:8011'),undefined);
     assert.equal(controller.state.checkpoint,null);
     results.push('SecretStorage disconnect and private-state clearing');
-    await fs.writeFile(path.join(process.env.BEPROGRAM_TEST_RUN,'host-results.json'),JSON.stringify({passed:results.length,results,provider:'Explicit test-only assessor; no live OpenAI call'},null,2));
+    await fs.writeFile(path.join(process.env.BEPROGRAM_TEST_RUN,'host-results.json'),JSON.stringify({passed:results.length,results,provider:'Explicit test-only assessor; no live model call'},null,2));
     console.log('BEPROGRAM_HOST_TESTS_PASSED '+results.length);
   }finally{controller.vscode=originalVscode;}
 };

@@ -20,6 +20,10 @@ def mount_optional(app, service, auth, config):
     github = GitHubService(service, github_adapter)
     app.state.github = github
 
+    def receipts_enabled():
+        if not config.solana_enabled:
+            raise AppError('receipts_disabled', 'Receipts are disabled for the core demo. Learning checkpoints and history remain available.', 503)
+
     @app.post('/v1/github/connect')
     def github_connect(owner=Depends(auth)):
         with service.serial(owner):
@@ -52,33 +56,33 @@ def mount_optional(app, service, auth, config):
     def publication_status(id: str, owner=Depends(auth)):
         return github.get(owner, id)
 
-    @app.post('/v1/wallet-challenges')
+    @app.post('/v1/wallet-challenges', dependencies=[Depends(receipts_enabled)])
     def wallet(data: WalletInput, owner=Depends(auth)):
         return receipts.challenge(owner, data)
 
-    @app.post('/v1/receipts/preview')
+    @app.post('/v1/receipts/preview', dependencies=[Depends(receipts_enabled)])
     def preview(data: PreviewInput, owner=Depends(auth)):
         return receipts.preview(owner, data)
 
-    @app.post('/v1/receipts')
+    @app.post('/v1/receipts', dependencies=[Depends(receipts_enabled)])
     def issue(data: IssueInput, owner=Depends(auth)):
         with stage('receipt_issuance', str(uuid.uuid4())):
             return receipts.issue(owner, data)
 
-    @app.get('/v1/receipts/{id}')
+    @app.get('/v1/receipts/{id}', dependencies=[Depends(receipts_enabled)])
     def receipt(id: str, owner=Depends(auth)):
         return receipts.get(owner, id)
 
-    @app.post('/v1/receipts/{id}/reconcile')
+    @app.post('/v1/receipts/{id}/reconcile', dependencies=[Depends(receipts_enabled)])
     def reconcile(id: str, owner=Depends(auth)):
         with service.serial(owner):
             return receipts.reconcile(owner, id)
 
-    @app.get('/v1/receipts/{id}/export')
+    @app.get('/v1/receipts/{id}/export', dependencies=[Depends(receipts_enabled)])
     def export(id: str, owner=Depends(auth)):
         return receipts.get(owner, id, export=True)
 
-    @app.post('/v1/verify')
+    @app.post('/v1/verify', dependencies=[Depends(receipts_enabled)])
     def verify(data: VerifyInput):
         if len(str(data.manifest)) > 250_000:
             raise AppError('too_large', 'Evidence package exceeds the verifier limit.', 413)

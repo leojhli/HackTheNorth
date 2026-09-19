@@ -16,7 +16,7 @@ export function productData(project: Project | null, session: Session | null, cp
     REASON: cp?.question?.reason || '', CAPTURED_AT: cp ? new Date(cp.created*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '',
     DEMONSTRATED_CONCEPTS: [...new Set(history.filter(passed).map(c => c.question?.concept || 'Understanding'))],
     INCLUDED_FILES: project?.scope || [], EXCLUDED_FILES: [{ path: '.env / secrets', reason: 'Always excluded' }, { path: 'node_modules / generated output', reason: 'Always excluded' }, ...(project?.exclusions || []).map(path => ({path, reason: 'Excluded by you'}))],
-    PROVIDER_DISCLOSURE: 'Approved saved code excerpts and reviewed explanations are sent to OpenAI. History is private to your account. Raw context is retained for up to 30 days. Optional services are used only when you select their actions.',
+    PROVIDER_DISCLOSURE: 'Approved saved code and reviewed explanations are assessed by a model on this computer. No AI API credits or subscriptions are used. History stays in the local database; raw context expires when the retention job runs.',
     INTEGRATION_LABEL: 'BeProgram managed AI', SESSION_STARTED: session?.created || 0,
     ACCOUNT_CONNECT_HINT: 'Connect your account to keep your learning history private.',
     VOICE_ENABLED: !!config?.capabilities.voice, RECEIPTS_ENABLED: !!config?.capabilities.receipts,

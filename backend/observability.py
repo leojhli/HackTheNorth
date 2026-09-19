@@ -27,10 +27,8 @@ def scrub_log(log, hint=None):
 
 
 def configure(config):
-    if config.sentry_dsn:
-        sentry_sdk.init(dsn=config.sentry_dsn, default_integrations=False, auto_enabling_integrations=False,
-            send_default_pii=False, traces_sample_rate=0.2, enable_logs=True,
-            before_send=scrub_event, before_send_transaction=scrub_transaction, before_send_log=scrub_log)
+    # Empty DSN explicitly ignores legacy SENTRY_DSN environment configuration.
+    sentry_sdk.init(dsn='', default_integrations=False, auto_enabling_integrations=False)
 
 
 @contextmanager

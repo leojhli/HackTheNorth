@@ -1,10 +1,12 @@
+> Free local edition (0.3.0): run the backend with `./scripts/run-local.ps1`. Questions, evaluations and Managed Ask AI use local Qwen2.5-Coder through Ollama; no provider key or credits are needed. Use `LOCAL_DEV_TOKEN` to connect. Hosted voice, Composio and Sentry are disabled. Local inference may take up to two minutes; failed attempts remain unresolved and retryable. See the root README for model installation.
+
 ﻿# BeProgram for VS Code
 
 BeProgram's main learning flow now lives in the VS Code sidebar: approved saved change → contextual question → explanation → follow-up when needed → saved result → next Managed Ask AI request. The sidebar reuses the Figma checkpoint components and visual tokens. The website supports history, settings, optional receipts, voice and verification.
 
 ## Install and try it
 
-1. Start the backend from the repository root with ./scripts/run-local.ps1. Add OPENAI_API_KEY to the backend's ignored .env and restart it for actual assessment. A missing key produces an unavailable state, never a simulated pass.
+1. Start the backend from the repository root with ./scripts/run-local.ps1. The launcher starts local Ollama with cloud features disabled. Run ./scripts/setup-local-ai.ps1 first if the runtime/model is missing. No API key is needed; unavailable local inference never produces a simulated pass.
 2. Install artifacts/beprogram-companion.vsix using **Extensions: Install from VSIX…**. Alternatively run the command below.
 3. Open and trust a local Git repository. Click **BeProgram** in the Activity Bar, or run **BeProgram: Open checkpoint** from the Command Palette.
 4. Click **Connect account**. Enter the backend's LOCAL_DEV_TOKEN for local development, or a Supabase access token for your deployed account. Tokens are entered in a native VS Code password prompt and stored in SecretStorage, never in the webview.
@@ -45,7 +47,7 @@ With Node/npm on PATH:
     npm --prefix apps/vscode-extension run test:host
     npm --prefix apps/vscode-extension run package
 
-Create the repository's artifacts directory before packaging if absent. The host runner defaults to the installed Windows VS Code executable; set BEPROGRAM_VSCODE_EXECUTABLE on another platform. It launches an isolated user/extension profile and temporary Git fixture, plus the actual API with an explicitly test-only evaluator. It does not change your normal VS Code profile or call live OpenAI.
+Create the repository's artifacts directory before packaging if absent. The host runner defaults to the installed Windows VS Code executable; set BEPROGRAM_VSCODE_EXECUTABLE on another platform. It launches an isolated user/extension profile and temporary Git fixture, plus the actual API with an explicitly test-only evaluator. It does not change your normal VS Code profile or call the live local model.
 
 ## Persistence, safety and limits
 
