@@ -12,7 +12,7 @@ export function productData(project: Project | null, session: Session | null, cp
     CURRENT_FILE: file?.path || 'Saved source', CONCEPT: cp?.question?.concept || 'Code understanding',
     CAPTURED_CODE: file?.lines.map(l => `${l.number}  ${l.text}`).join('\n') || '', CAPTURED_DIFF: diff,
     LEARNING_EXPLANATION: cp?.learning_explanation || '',
-    PRACTICE_ACTIVE: !!cp?.practice_question, PRACTICE_REQUIRED: !!cp?.explanation_viewed && !cp.practice_question && !passed(cp),
+    PRACTICE_ACTIVE: !!cp?.practice_question, PRACTICE_REQUIRED: !!cp?.explanation_viewed && !cp.practice_question && !passed(cp) && cp.status !== 'given_up',
     PASSED_WITH_HELP: cp?.status === 'passed_with_help',
     INITIAL_QUESTION: cp?.practice_question?.question || cp?.question?.question || '', FOLLOWUP_QUESTION: cp?.current_question || '',
     FOLLOWUP_FEEDBACK: evaluations.at(-1)?.feedback || '', SUCCESS_FEEDBACK: evaluations.at(-1)?.feedback || '',

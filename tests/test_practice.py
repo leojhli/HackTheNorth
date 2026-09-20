@@ -22,6 +22,45 @@ def practice(c, cp):
     return c.post(f"/v1/checkpoints/{cp['id']}/practice",json={'version':cp['version'],'snapshot_hash':cp['snapshot_hash']})
 
 
+@pytest.mark.parametrize('in_practice', [False, True])
+def test_give_up_completes_without_pass_and_survives_restart(app_env, in_practice):
+    c, _, db, model, config = app_env
+    _, session, cp = setup(c)
+    if in_practice:
+        c.post(f"/v1/checkpoints/{cp['id']}/explanation")
+        cp = practice(c, cp).json()
+    response = c.post(f"/v1/checkpoints/{cp['id']}/give-up")
+    assert response.status_code == 200
+    done = response.json()
+    assert done['status'] == 'given_up' and done['passed_at'] is None
+    assert done['learning_explanation']
+    assert done['attempts'] == cp['attempts']
+    assert done['version'] == cp['version'] + 1
+    assert c.post(f"/v1/checkpoints/{cp['id']}/give-up").json()['version'] == done['version']
+    assert answer(c, done, GOOD, 'after-give-up').status_code == 409
+    with TestClient(create_app(config, db, model), headers=dict(c.headers)) as restarted:
+        assert restarted.get(f"/v1/checkpoints/{cp['id']}").json()['status'] == 'given_up'
+        assert restarted.get(f"/v1/sessions/{session['id']}/gate").json()['available']
+        # Capturing the same saved change does not reopen the question.
+        assert change(restarted, session).json()['checkpoint']['status'] == 'given_up'
+        assert restarted.post(f"/v1/sessions/{session['id']}/ask", json={
+            'prompt': 'Suggest a test', 'idempotency_key': 'ask-after-give-up'}).status_code == 200
+
+
+def test_give_up_stays_completed_when_explanation_fails(app_env):
+    c, _, _, model, _ = app_env
+    _, session, cp = setup(c)
+    model.fail = True
+    result = c.post(f"/v1/checkpoints/{cp['id']}/give-up")
+    assert result.status_code == 200 and result.json()['status'] == 'given_up'
+    assert not result.json()['learning_explanation']
+    assert c.get(f"/v1/sessions/{session['id']}/gate").json()['available']
+    model.fail = False
+    retried = c.post(f"/v1/checkpoints/{cp['id']}/give-up").json()
+    assert retried['learning_explanation'] and retried['status'] == 'given_up'
+    assert retried['version'] == result.json()['version']
+
+
 def test_help_is_durable_without_passing_and_expires_with_source(app_env):
     c, _, db, model, _ = app_env
     _, s, cp = setup(c)
@@ -121,7 +160,8 @@ def test_practice_missing_dimensions_never_pass(app_env,dimension):
     model.generate=lambda *a,**kw:PracticeEvaluation(**data)
     cp=SimpleNamespace(snapshot={},question={'question':'What happens for eight guests and ten spaces?'},practice=True)
     result=model.evaluate(cp,[],'My answer')
-    assert result.decision=='follow_up' and result.next_question==cp.question['question']
+    assert result.decision=='follow_up' and result.next_question.startswith(cp.question['question'])
+    assert 'Explain why' in result.next_question
 
 
 def test_practice_answer_outage_retry_and_deletion(app_env):

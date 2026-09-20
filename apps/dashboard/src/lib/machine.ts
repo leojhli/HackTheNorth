@@ -11,6 +11,7 @@ export type Phase =
   | 'followup' // E07
   | 'followup-evaluating' // E06 for the follow-up
   | 'verified' // E08
+  | 'completed' // Finished by giving up, without a passing assessment.
   | 'paused' // E10 (checkpoint paused)
   | 'error' // E11
   | 'disconnected' // E12

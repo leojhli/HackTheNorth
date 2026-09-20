@@ -4,6 +4,8 @@
 
 CodeProof's main learning flow now lives in the VS Code sidebar: approved saved change → contextual question → explanation → follow-up when needed → saved result → next Managed Ask AI request. The sidebar reuses the Figma checkpoint components and visual tokens. The website supports history and settings. Receipts, voice and GitHub publication are disabled in this edition.
 
+Patch, the animated code guardian, reacts to every checkpoint state and respects reduced-motion preferences.
+
 ## Install and try it
 
 1. Start the backend from the repository root with ./scripts/run-local.ps1. The launcher starts local Ollama with cloud features disabled. Run ./scripts/setup-local-ai.ps1 first if the runtime/model is missing. No API key is needed; unavailable local inference never produces a simulated pass.

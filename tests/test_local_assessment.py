@@ -268,6 +268,61 @@ def test_missing_blank_invented_or_duplicate_pass_quotes_stay_blocked(monkeypatc
         model.evaluate(SimpleNamespace(snapshot={}, question={}), [], 'A valid excerpt.')
 
 
+@pytest.mark.parametrize('support,decision', [([], 'follow_up'), (['because the condition is true'], 'pass')])
+def test_practice_pass_requires_separate_learner_reasoning(monkeypatch, support, decision):
+    from backend.assessment import PracticeEvaluation, LearnerSupport
+    model = LocalAssessor(config())
+    calls = []
+    def generate(messages, schema, **kwargs):
+        calls.append(schema)
+        if schema is PracticeEvaluation:
+            payload = json.loads(messages[1]['content'])
+            assert 'INVENTED_REFERENCE' not in json.dumps(payload)
+            return PracticeEvaluation(answer_quotes=['true'], intent_correct=True,
+                mechanism_correct=True, reasoning_correct=True, central_contradiction=False,
+                feedback='Model claims a pass.', evidence=[], gaps=[])
+        assert schema is LearnerSupport
+        return LearnerSupport(answer_quotes=support)
+    monkeypatch.setattr(model, 'generate', generate)
+    cp = SimpleNamespace(snapshot={'files': []}, question={'question': 'What happens and why?',
+        'rubric': ['INVENTED_REFERENCE']}, practice=True)
+    result = model.evaluate(cp, [], 'true because the condition is true' if support else 'true')
+    assert result.decision == decision
+    assert calls == [PracticeEvaluation, LearnerSupport]
+    if decision == 'follow_up':
+        assert not result.central_contradiction
+        assert 'Why does that happen?' in result.next_question
+
+
+@pytest.mark.parametrize('has_reasoning', [False, True])
+def test_practice_rejection_cannot_publish_contradictory_feedback(monkeypatch, has_reasoning):
+    from backend.assessment import PracticeEvaluation, LearnerSupport
+    model = LocalAssessor(config())
+    learner = 'You can enter because 25 >= 18 is true.' if has_reasoning else 'You can enter'
+    contradictory = "'You can enter' is incorrect. The correct output is 'You can enter'."
+    def generate(messages, schema, **kwargs):
+        if schema is PracticeEvaluation:
+            return PracticeEvaluation(answer_quotes=[learner], intent_correct=False,
+                mechanism_correct=False, reasoning_correct=False, central_contradiction=True,
+                feedback=contradictory, evidence=[], gaps=['Incorrect output'])
+        assert schema is LearnerSupport
+        # Previous answers must not supply reasoning absent from this answer.
+        assert json.loads(messages[1]['content']) == {'learner_explanations': [learner]}
+        assert 0 < kwargs['timeout_seconds'] < model.config.operation_timeout
+        return LearnerSupport(answer_quotes=[learner] if has_reasoning else [])
+    monkeypatch.setattr(model, 'generate', generate)
+    cp = SimpleNamespace(snapshot={'files': []}, question={'question': 'What happens at age 25, and why?'}, practice=True)
+    result = model.evaluate(cp, [{'answer': 'An earlier explanation.'}], learner)
+    assert result.decision == 'follow_up'
+    assert result.feedback != contradictory
+    assert 'incorrect' not in result.feedback.lower()
+    assert cp.question['question'] in result.next_question
+    if not has_reasoning:
+        assert not result.central_contradiction
+        assert result.gaps == ['Explanation of the code path']
+        assert result.answer_quotes == []
+
+
 def test_quote_recovery_uses_only_learner_text_and_keeps_time_budget(monkeypatch):
     from backend.assessment import LocalEvaluation, LearnerSupport
     model = LocalAssessor(config())

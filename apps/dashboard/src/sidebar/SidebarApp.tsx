@@ -41,7 +41,7 @@ export default function SidebarApp(){
   const stageAttempts=cp?.attempts.filter(a=>!cp.practice_started_version||a.version>=cp.practice_started_version)||[]
   const working=state.busy&&!['ready','refresh'].includes(state.operation||'')
   const offline=!!state.connectionError
-  let phase:Phase=!state.session?'welcome':!cp||cp.status==='skipped'?'active':passed(cp)?'verified':cp.status==='unavailable'||!cp.question?'error':cp.status==='evaluating'?'evaluating':cp.status==='needs_followup'?'followup':'checkpoint'
+  let phase:Phase=!state.session?'welcome':!cp||cp.status==='skipped'?'active':cp.status==='given_up'?'completed':passed(cp)?'verified':cp.status==='unavailable'||!cp.question?'error':cp.status==='evaluating'?'evaluating':cp.status==='needs_followup'?'followup':'checkpoint'
   if(state.session && mode==='active')phase='active'
   if(cp&&!passed(cp)&&mode==='paused')phase='paused'
   if(state.operation==='capture')phase='analyzing'

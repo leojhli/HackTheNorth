@@ -274,11 +274,10 @@ class Controller {
         case 'explain': {
           if(!this.checkpoint)throw Error('Open a checkpoint first.');
           const id=this.checkpoint.id;
-          const consent=await this.vscode.window.showInformationMessage('Read an explanation of this saved change? This does not pass the checkpoint or unlock Managed Ask AI. You can return to the question later.',{modal:true},'Give up and explain');
-          if(consent!=='Give up and explain')break;
-          this.checkpoint=await this.request('/v1/checkpoints/'+id+'/explanation','POST');
+          this.checkpoint=await this.request('/v1/checkpoints/'+id+'/give-up','POST');
+          this.draft=null;this.answerIntent=null;
           await this.refresh();
-          this.state.notice='Explanation saved. This checkpoint remains unresolved; you can return to it when ready.';
+          this.state.notice='Question completed: gave up. You can continue with Managed Ask AI.';
           break;
         }
         case 'ready': if(!this.active)await this.restore();await this.refresh();break;

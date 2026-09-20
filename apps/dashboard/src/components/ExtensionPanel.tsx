@@ -16,6 +16,7 @@ import {
 } from './ui'
 import { CodeDiff, CodePlain } from './CodeExcerpt'
 import { SpeechPlayback, VoiceAnswer } from './Voice'
+import { PatchMascot } from './PatchMascot'
 import { Check, ExternalLink, Sparkle, ChevronRight, Pause, Clock, Settings, Alert, Plug } from '../lib/icons'
 
 export type ExtActions = {
@@ -49,35 +50,45 @@ export type ExtActions = {
 export function ExtensionPanel({ s, a }: { s: ExtensionState; a: ExtActions }) {
   const fx = useProduct()
   const explanationRef = useRef<HTMLDivElement>(null)
-  useEffect(()=>{if(fx.LEARNING_EXPLANATION && !fx.PRACTICE_ACTIVE) explanationRef.current?.scrollIntoView({block:'nearest'})},[fx.LEARNING_EXPLANATION,fx.PRACTICE_ACTIVE])
+  const checkpointVisible = ['checkpoint','evaluating','followup','followup-evaluating','paused','error','completed'].includes(s.phase)
+  const learning = checkpointVisible && fx.PRACTICE_REQUIRED
+  useEffect(()=>{if(learning) explanationRef.current?.scrollIntoView({block:'nearest'})},[learning])
   return (
     <section
       aria-label="CodeProof checkpoint panel"
       className="@container flex h-full flex-col bg-panel text-primary"
     >
       <PanelHeader s={s} a={a} />
+      {a.giveUp && ['checkpoint','followup','paused','error'].includes(s.phase) && <div className="sticky top-0 z-10 space-y-2 border-b border-subtle bg-panel px-5 py-3">
+        <Button variant="secondary" onClick={a.giveUp}>Give up and explain</Button>
+        <p className="text-[12px] leading-5 text-secondary">Complete this question and read the walkthrough.</p>
+      </div>}
+      {!['error', 'disconnected'].includes(s.phase) && <PatchMascot phase={s.phase} practiceRequired={fx.PRACTICE_REQUIRED} />}
       <div key={s.phase} className="bp-scroll bp-enter flex-1 overflow-y-auto">
         <div className="p-5 @[720px]:p-6">
           {s.phase === 'welcome' && <Welcome s={s} a={a} />}
           {s.phase === 'scope' && <Scope a={a} />}
           {s.phase === 'active' && <ActiveSession s={s} a={a} />}
           {s.phase === 'analyzing' && <Analyzing />}
-          {!fx.PRACTICE_REQUIRED && (s.phase === 'checkpoint' || s.phase === 'evaluating') && <Checkpoint s={s} a={a} />}
-          {!fx.PRACTICE_REQUIRED && (s.phase === 'followup' || s.phase === 'followup-evaluating') && <Followup s={s} a={a} />}
-          {fx.PRACTICE_REQUIRED && <div className="space-y-3"><h1 className="text-[18px] font-semibold">Learn, then try a fresh question</h1><p className="text-[14px] leading-6 text-secondary">Read the explanation below. When you are ready, apply the idea to a new example from this saved code. Your previous answers stay in history.</p></div>}
+          {!learning && (s.phase === 'checkpoint' || s.phase === 'evaluating') && <Checkpoint s={s} a={a} />}
+          {!learning && (s.phase === 'followup' || s.phase === 'followup-evaluating') && <Followup s={s} a={a} />}
+          {learning && <div className="space-y-3"><h1 className="text-[18px] font-semibold">{fx.PRACTICE_ACTIVE ? 'Practice paused' : 'Learn, then try a fresh question'}</h1><p className="text-[14px] leading-6 text-secondary">Read the explanation below. Your question and answers are saved for when you are ready to practice.</p></div>}
           {s.phase === 'verified' && <Verified s={s} a={a} />}
-          {s.phase === 'paused' && <PausedCheckpoint a={a} />}
-          {s.phase === 'error' && <ErrorState s={s} a={a} />}
-          {s.phase === 'disconnected' && <Disconnected a={a} />}
-          {a.giveUp && ['checkpoint','followup','paused','error'].includes(s.phase) && <div className="mt-5 space-y-2 border-t border-subtle pt-4">
-            <Button variant="secondary" onClick={()=>fx.LEARNING_EXPLANATION ? explanationRef.current?.scrollIntoView({block:'nearest'}) : a.giveUp?.()}>{fx.LEARNING_EXPLANATION ? 'Read explanation again' : 'Give up and explain'}</Button>
-            <p className="text-[12px] leading-5 text-secondary">Read a walkthrough and return when ready. This does not pass the checkpoint or unlock Managed Ask AI.</p>
+          {s.phase === 'completed' && <div className="space-y-4">
+            <h1 className="text-[20px] font-semibold">Question completed</h1>
+            <p className="text-[14px] text-secondary">Recorded as gave up. You can move on and use Managed Ask AI.</p>
+            <Button onClick={a.continueCoding}>Continue coding</Button>
+            {!fx.LEARNING_EXPLANATION && <InlineNotice kind="info">The question is completed, but the explanation could not be generated. <Button variant="text" onClick={a.giveUp}>Retry explanation</Button></InlineNotice>}
           </div>}
-          {fx.LEARNING_EXPLANATION && <div ref={explanationRef} className="mt-5 space-y-3 rounded-[var(--radius-panel)] border border-subtle bg-canvas p-4" role="region" aria-label="Code explanation">
+          {!learning && s.phase === 'paused' && <PausedCheckpoint a={a} />}
+          {!learning && s.phase === 'error' && <ErrorState s={s} a={a} />}
+          {s.phase === 'disconnected' && <Disconnected a={a} />}
+          {checkpointVisible && fx.LEARNING_EXPLANATION && <div ref={explanationRef} className="mt-5 space-y-3 rounded-[var(--radius-panel)] border border-subtle bg-canvas p-4" role="region" aria-label="Code explanation">
             <h2 className="text-[16px] font-semibold">Code explanation</h2>
             <p className="text-[12px] text-secondary">Generated by the local model; it can be incorrect. Reading this is recorded as help, not a passing answer.</p>
             <p className="whitespace-pre-wrap break-words text-[14px] leading-6">{fx.LEARNING_EXPLANATION}</p>
             {fx.PRACTICE_REQUIRED && a.startPractice && <Button onClick={a.startPractice}>Try a practice question</Button>}
+            {learning && <Button variant="secondary" onClick={a.keepEditing}>Keep coding</Button>}
           </div>}
         </div>
       </div>

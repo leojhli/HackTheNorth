@@ -2,6 +2,8 @@
 
 Understand the code you build with AI. CodeProof is a VS Code extension with a local dashboard: review saved changes, explain them, receive feedback, and keep your learning history.
 
+Patch, the animated CodeProof companion, reacts as you review, explain, retry and pass without covering the code or changing the underlying learning workflow.
+
 Questions and coding suggestions run locally using Ollama and `qwen2.5-coder:7b`. No paid model API or inference credits are required.
 
 ## Start
@@ -24,7 +26,7 @@ Install `artifacts/codeproof-companion.vsix` through VS Code's **Extensions: Ins
 2. Make and save a meaningful JavaScript or TypeScript change.
 3. Choose **Review saved changes**, inspect the preview, and approve it.
 4. Answer the question in your own words and complete any follow-up.
-5. If stuck, choose **Give up and explain**, then **Try a practice question**. Passing practice records **Demonstrated with help**.
+5. If stuck, choose **Give up and explain**. This completes the question as **gave up**, shows a walkthrough, and unlocks Managed Ask AI. It does not record a passing assessment.
 6. After passing, use **Managed Ask AI** for a coding suggestion. Review results in **History**.
 
 Only CodeProof's Managed Ask AI is gated. Other assistants remain available. Suggestions open for review and do not automatically edit files. The local model can give incorrect feedback or code; its correctness has not been independently validated.

@@ -162,3 +162,146 @@
 .bp-spin {
   animation: bp-spin 900ms linear infinite;
 }
+
+/* Patch, CodeProof's code-understanding companion. */
+.bp-patch-strip {
+  background-image: radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--action-primary) 13%, transparent), transparent 42%);
+}
+.bp-patch-character {
+  transform-origin: 50% 78%;
+  animation: bp-patch-float 3.2s ease-in-out infinite;
+}
+.bp-patch-body {
+  fill: var(--action-primary);
+  stroke: color-mix(in srgb, var(--action-primary) 65%, var(--text-primary));
+  stroke-width: 2;
+}
+.bp-patch-arm {
+  fill: none;
+  stroke: var(--action-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform-origin: 40px 40px;
+}
+.bp-patch-eyes {
+  transform-origin: 40px 34px;
+  animation: bp-patch-blink 4.6s ease-in-out infinite;
+}
+.bp-patch-working {
+  animation: bp-patch-work 800ms ease-in-out infinite;
+}
+.bp-patch-working .bp-patch-eyes {
+  animation: bp-patch-look 900ms ease-in-out infinite alternate;
+}
+.bp-patch-working .bp-patch-arm-left {
+  animation: bp-patch-wave-left 700ms ease-in-out infinite alternate;
+}
+.bp-patch-focused {
+  animation: bp-patch-focus 2.4s ease-in-out infinite;
+}
+.bp-patch-celebrate {
+  animation: bp-patch-celebrate 1.35s ease-in-out infinite;
+}
+.bp-patch-celebrate .bp-patch-arm-left,
+.bp-patch-celebrate .bp-patch-arm-right {
+  transform: translateY(-5px) rotate(8deg);
+}
+.bp-patch-paused {
+  animation: bp-patch-breathe 3.8s ease-in-out infinite;
+}
+.bp-patch-alert {
+  animation: bp-patch-alert 2.4s ease-in-out infinite;
+}
+.bp-patch-orbit {
+  display: none;
+  position: absolute;
+  inset: 2px;
+  border: 1px dashed color-mix(in srgb, var(--action-primary) 48%, transparent);
+  border-radius: 999px;
+  animation: bp-patch-orbit 1.6s linear infinite;
+}
+.bp-patch-orbit::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--status-info);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-info) 72%, transparent);
+}
+.bp-patch-working .bp-patch-orbit {
+  display: block;
+}
+.bp-patch-confetti {
+  display: none;
+  position: absolute;
+  z-index: 1;
+  width: 5px;
+  height: 9px;
+  border-radius: 2px;
+}
+.bp-patch-celebrate .bp-patch-confetti {
+  display: block;
+  animation: bp-patch-confetti 1.35s ease-out infinite;
+}
+.bp-patch-confetti-a { left: 1px; top: 7px; background: var(--status-attention); transform: rotate(-28deg); }
+.bp-patch-confetti-b { right: 0; top: 5px; background: var(--status-success); transform: rotate(24deg); animation-delay: 120ms !important; }
+.bp-patch-confetti-c { right: 7px; top: 27px; background: var(--status-info); transform: rotate(58deg); animation-delay: 240ms !important; }
+
+@keyframes bp-patch-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-3px) rotate(1deg); }
+}
+@keyframes bp-patch-blink {
+  0%, 45%, 51%, 100% { transform: scaleY(1); }
+  48% { transform: scaleY(.08); }
+}
+@keyframes bp-patch-work {
+  0%, 100% { transform: translateY(1px) rotate(-2deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+@keyframes bp-patch-look {
+  from { transform: translateX(-2px); }
+  to { transform: translateX(2px); }
+}
+@keyframes bp-patch-wave-left {
+  from { transform: rotate(-4deg); }
+  to { transform: translateY(-4px) rotate(-18deg); }
+}
+@keyframes bp-patch-focus {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: translateY(-2px) rotate(-3deg); }
+}
+@keyframes bp-patch-celebrate {
+  0%, 100% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-8px) scale(1.05) rotate(-3deg); }
+  65% { transform: translateY(-4px) scale(1.03) rotate(3deg); }
+}
+@keyframes bp-patch-breathe {
+  0%, 100% { transform: scale(1); opacity: .9; }
+  50% { transform: scale(.97); opacity: .72; }
+}
+@keyframes bp-patch-alert {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: translateY(2px) rotate(2deg); }
+}
+@keyframes bp-patch-orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes bp-patch-confetti {
+  0% { opacity: 0; translate: 0 4px; }
+  30% { opacity: 1; }
+  100% { opacity: 0; translate: 0 -13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-patch-character,
+  .bp-patch-eyes,
+  .bp-patch-arm,
+  .bp-patch-orbit,
+  .bp-patch-confetti {
+    animation: none !important;
+  }
+}

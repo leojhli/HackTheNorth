@@ -9,7 +9,7 @@ from .contracts import Question, Evaluation
 from .errors import AppError
 
 PASSING = {'passed', 'passed_with_help'}
-RESOLVED = PASSING | {'skipped'}
+RESOLVED = PASSING | {'skipped', 'given_up'}
 
 
 def owned(db, model, id, owner):
@@ -192,6 +192,23 @@ class CheckpointService:
                 db.flush()
                 return self.detail(db, cp)
 
+    def give_up(self, owner, id):
+        """Complete without a pass, even if generating the walkthrough fails."""
+        with self.serial(owner), self.database.transaction() as db:
+            cp = owned(db, Checkpoint, id, owner)
+            if cp.status in RESOLVED and cp.status != 'given_up':
+                raise AppError('not_answerable', 'This checkpoint is already completed.', 409)
+            if not cp.question or cp.question.get('decision') != 'assess':
+                raise AppError('not_answerable', 'Open a question before giving up.', 409)
+            if cp.status != 'given_up':
+                cp.status, cp.last_error = 'given_up', None
+                cp.version += 1
+        try:
+            return self.explain(owner, id)
+        except AppError:
+            # Completion is durable and must not depend on local AI availability.
+            return self.checkpoint(owner, id)
+
     def explain(self, owner, id):
         """Offer saved teaching material without submitting an answer or clearing the gate."""
         with self.serial(owner) as lease:
@@ -200,7 +217,7 @@ class CheckpointService:
                 op = db.scalar(select(Operation).where(Operation.owner == owner, Operation.kind == 'checkpoint_explanation', Operation.key == id))
                 if op and op.state == 'completed':
                     return self.detail(db, cp)
-                if cp.status in RESOLVED or not cp.question or cp.question.get('decision') != 'assess':
+                if (cp.status in RESOLVED and cp.status != 'given_up') or not cp.question or cp.question.get('decision') != 'assess':
                     raise AppError('not_answerable', 'Open an unresolved question before requesting an explanation.', 409)
                 if not cp.snapshot.get('files'):
                     raise AppError('context_expired', 'This saved source has expired; an explanation cannot be generated.', 409)

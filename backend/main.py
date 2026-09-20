@@ -131,6 +131,10 @@ def create_app(config=None, database=None, assessor=None):
         with observability.stage('checkpoint_explanation', str(uuid.uuid4())):
             return service.explain(owner, id)
 
+    @app.post('/v1/checkpoints/{id}/give-up')
+    def give_up(id: str, owner=Depends(auth)):
+        return service.give_up(owner, id)
+
     @app.post('/v1/checkpoints/{id}/answers')
     def answer(id: str, data: AnswerInput, owner=Depends(auth)):
         with observability.stage('answer_evaluation_and_persistence', str(uuid.uuid4())):

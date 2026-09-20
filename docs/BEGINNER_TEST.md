@@ -22,7 +22,7 @@ The command checks readiness and opens a fresh demo in VS Code. If automatic ope
 
 1. Choose **Review saved changes**, inspect the preview, and approve the demo's `src/canJoin.js` change. Is it clear which code you approved?
 2. Read the question and answer in your own words. Is the wording understandable? If the feedback is confusing, note its exact wording. A follow-up is allowed; repeated or unrelated demands are a finding.
-3. If stuck, choose **Give up and explain**. Does the explanation help? Managed Ask AI should remain locked after reading it.
+3. If stuck, choose **Give up and explain**. Does the question close and the explanation help? Managed Ask AI should unlock, with the result recorded as **gave up**, not passed.
 4. Choose **Try a practice question**. Is it a different example? Answer the example it actually asks. If accepted, the result should say **Demonstrated with help**. Do not copy an answer just to make the status change.
 5. Open **Managed Ask AI**, request a test for the full-capacity case, and check that a response opens with its approved-file context. This is an unverified suggestion; it should not edit your files.
 6. Open **History**. Can you find the question, your answer, the feedback, and the assisted result? Reload VS Code with **Developer: Reload Window** and confirm the saved history remains.
